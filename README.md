@@ -1,4 +1,4 @@
-COLLISION-CODE
+# COLLISION-CODE
 
 University of Rouen (Normandie, France)
 https://github.com/Collision-Code/projet
