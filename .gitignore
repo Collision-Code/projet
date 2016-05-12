@@ -1,0 +1,16 @@
+.DS_Store
+*.synctex.gz
+*.aux
+*.toc
+*.txt
+*.backup
+*.cbp
+*.layout
+bin/*
+obj/*
+*.depend
+/pu.sh
+/super_pu.sh
+/super_pu.sh~
+*.sh~
+*.sh

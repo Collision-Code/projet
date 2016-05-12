@@ -1,0 +1,166 @@
+# Makefile Windows
+
+CXX = g++.exe
+MOC = moc.exe
+CFLAGS = -w -fexceptions -D__NO_INLINE__
+
+LIB = -Llib -Llib\qt -Ilib
+LDLIBS = -lqtmain \
+			-lQt5Widgets \
+			-lQt5Gui \
+			-lQt5Core
+
+OBJDIR = obj
+OBJDIR_RELEASE = $(OBJDIR)/Release
+OBJ_RELEASE = 	$(OBJDIR_RELEASE)/writer/StdFileWriter.o \
+				$(OBJDIR_RELEASE)/reader/MolFileReader.o \
+				$(OBJDIR_RELEASE)/reader/PdbFileReader.o \
+				$(OBJDIR_RELEASE)/reader/MfjFileReader.o \
+				$(OBJDIR_RELEASE)/reader/XyzFileReader.o \
+				$(OBJDIR_RELEASE)/reader/LogFileReader.o \
+				$(OBJDIR_RELEASE)/reader/ChgChargesReader.o \
+				$(OBJDIR_RELEASE)/reader/StdExtractFactory.o \
+				$(OBJDIR_RELEASE)/reader/StdExtractResources.o \
+				$(OBJDIR_RELEASE)/molecule/StdMolecule.o \
+				$(OBJDIR_RELEASE)/molecule/StdAtom.o \
+				$(OBJDIR_RELEASE)/math/StdResult.o \
+				$(OBJDIR_RELEASE)/math/StdMathLib.o \
+				$(OBJDIR_RELEASE)/math/StdCalculationOperator.o \
+				$(OBJDIR_RELEASE)/math/Vector3D.o \
+				$(OBJDIR_RELEASE)/math/RandomGenerator.o \
+				$(OBJDIR_RELEASE)/math/MonoThreadCalculationOperator.o \
+        $(OBJDIR_RELEASE)/math/MultiThreadCalculationOperator.o \
+				$(OBJDIR_RELEASE)/general/AtomInformations.o \
+        $(OBJDIR_RELEASE)/general/GlobalParameters.o \
+        $(OBJDIR_RELEASE)/general/SystemParameters.o \
+				$(OBJDIR_RELEASE)/general/StdCmdView.o \
+				$(OBJDIR_RELEASE)/general/StdGeometryCalculator.o
+        
+OBJ_RELEASE_IHM = $(OBJDIR_RELEASE)/mainQt.o \
+				$(OBJDIR_RELEASE)/gui/CCFrame.o \
+				$(OBJDIR_RELEASE)/gui/moc_CCFrame.o
+
+OBJ_RELEASE_CALC = $(OBJDIR_RELEASE)/main.o
+				
+CFLAGS_RELEASE = $(CFLAGS) -std=c++11 -fopenmp -O3
+
+INCPATH = -I. \
+			-Iinclude \
+			-Iinclude/windows \
+			-Iinclude/QtGui \
+			-Iinclude/QtWidgets \
+			-Iinclude/windows/QtCore \
+			-Iinclude/windows/win32-g++
+
+OUT_RELEASE_IHM = Collision-Code-GUI.exe
+OUT_RELEASE_CALC = Collision-Code.exe
+
+all: release_ihm release_calc
+
+prepare:
+	cmd /c if not exist $(OBJDIR_RELEASE) md $(OBJDIR)\\Release
+	cmd /c if not exist $(OBJDIR_RELEASE)\\writer md $(OBJDIR)\\Release\\writer
+	cmd /c if not exist $(OBJDIR_RELEASE)\\reader md $(OBJDIR)\\Release\\reader
+	cmd /c if not exist $(OBJDIR_RELEASE)\\molecule md $(OBJDIR)\\Release\\molecule
+	cmd /c if not exist $(OBJDIR_RELEASE)\\math md $(OBJDIR)\\Release\\math
+	cmd /c if not exist $(OBJDIR_RELEASE)\\general md $(OBJDIR)\\Release\\general
+	cmd /c if not exist $(OBJDIR_RELEASE)\\gui md $(OBJDIR)\\Release\\gui
+
+release_ihm: prepare gui/moc_CCFrame.cpp out_ihm
+release_calc: prepare out_calc
+	
+out_ihm: $(OBJ_RELEASE) $(OBJ_RELEASE_IHM)
+	$(CXX) -fopenmp -o $(OUT_RELEASE_IHM) $(OBJ_RELEASE) $(OBJ_RELEASE_IHM) $(INCPATH) $(LIB) $(LDLIBS) -s
+  
+out_calc: $(OBJ_RELEASE) $(OBJ_RELEASE_CALC)
+	$(CXX) -fopenmp -o $(OUT_RELEASE_CALC) $(OBJ_RELEASE) $(OBJ_RELEASE_CALC) -s
+	
+$(OBJDIR_RELEASE)/writer/StdFileWriter.o: writer/StdFileWriter.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c writer/StdFileWriter.cpp -o $(OBJDIR_RELEASE)/writer/StdFileWriter.o
+	
+$(OBJDIR_RELEASE)/reader/MolFileReader.o: reader/MolFileReader.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c reader/MolFileReader.cpp -o $(OBJDIR_RELEASE)/reader/MolFileReader.o
+
+$(OBJDIR_RELEASE)/reader/MfjFileReader.o: reader/MfjFileReader.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c reader/MfjFileReader.cpp -o $(OBJDIR_RELEASE)/reader/MfjFileReader.o
+	
+$(OBJDIR_RELEASE)/reader/LogFileReader.o: reader/LogFileReader.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c reader/LogFileReader.cpp -o $(OBJDIR_RELEASE)/reader/LogFileReader.o
+	
+$(OBJDIR_RELEASE)/reader/XyzFileReader.o: reader/XyzFileReader.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c reader/XyzFileReader.cpp -o $(OBJDIR_RELEASE)/reader/XyzFileReader.o
+	
+$(OBJDIR_RELEASE)/reader/PdbFileReader.o: reader/PdbFileReader.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c reader/PdbFileReader.cpp -o $(OBJDIR_RELEASE)/reader/PdbFileReader.o
+	
+$(OBJDIR_RELEASE)/reader/ChgChargesReader.o: reader/ChgChargesReader.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c reader/ChgChargesReader.cpp -o $(OBJDIR_RELEASE)/reader/ChgChargesReader.o
+	
+$(OBJDIR_RELEASE)/reader/StdExtractFactory.o: reader/StdExtractFactory.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c reader/StdExtractFactory.cpp -o $(OBJDIR_RELEASE)/reader/StdExtractFactory.o
+
+$(OBJDIR_RELEASE)/reader/StdExtractResources.o: reader/StdExtractResources.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c reader/StdExtractResources.cpp -o $(OBJDIR_RELEASE)/reader/StdExtractResources.o
+
+$(OBJDIR_RELEASE)/molecule/StdMolecule.o: molecule/StdMolecule.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c molecule/StdMolecule.cpp -o $(OBJDIR_RELEASE)/molecule/StdMolecule.o
+
+$(OBJDIR_RELEASE)/molecule/StdAtom.o: molecule/StdAtom.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c molecule/StdAtom.cpp -o $(OBJDIR_RELEASE)/molecule/StdAtom.o
+
+$(OBJDIR_RELEASE)/math/StdResult.o: math/StdResult.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c math/StdResult.cpp -o $(OBJDIR_RELEASE)/math/StdResult.o
+
+$(OBJDIR_RELEASE)/math/StdMathLib.o: math/StdMathLib.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c math/StdMathLib.cpp -o $(OBJDIR_RELEASE)/math/StdMathLib.o
+
+$(OBJDIR_RELEASE)/math/StdCalculationOperator.o: math/StdCalculationOperator.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c math/StdCalculationOperator.cpp -o $(OBJDIR_RELEASE)/math/StdCalculationOperator.o
+	
+$(OBJDIR_RELEASE)/math/Vector3D.o: math/Vector3D.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c math/Vector3D.cpp -o $(OBJDIR_RELEASE)/math/Vector3D.o
+	
+$(OBJDIR_RELEASE)/math/RandomGenerator.o: math/RandomGenerator.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c math/RandomGenerator.cpp -o $(OBJDIR_RELEASE)/math/RandomGenerator.o
+
+$(OBJDIR_RELEASE)/mainQt.o: mainQt.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(INCPATH) $(LIB) -c mainQt.cpp -o $(OBJDIR_RELEASE)/mainQt.o
+	
+$(OBJDIR_RELEASE)/main.o: main.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(INCPATH) $(LIB) -c main.cpp -o $(OBJDIR_RELEASE)/main.o
+
+$(OBJDIR_RELEASE)/general/AtomInformations.o: general/AtomInformations.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c general/AtomInformations.cpp -o $(OBJDIR_RELEASE)/general/AtomInformations.o
+
+$(OBJDIR_RELEASE)/general/GlobalParameters.o: general/GlobalParameters.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c general/GlobalParameters.cpp -o $(OBJDIR_RELEASE)/general/GlobalParameters.o
+
+$(OBJDIR_RELEASE)/general/SystemParameters.o: general/SystemParameters.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c general/SystemParameters.cpp -o $(OBJDIR_RELEASE)/general/SystemParameters.o
+    
+$(OBJDIR_RELEASE)/math/MonoThreadCalculationOperator.o: math/MonoThreadCalculationOperator.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c math/MonoThreadCalculationOperator.cpp -o $(OBJDIR_RELEASE)/math/MonoThreadCalculationOperator.o
+
+$(OBJDIR_RELEASE)/math/MultiThreadCalculationOperator.o: math/MultiThreadCalculationOperator.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c math/MultiThreadCalculationOperator.cpp -o $(OBJDIR_RELEASE)/math/MultiThreadCalculationOperator.o
+	
+$(OBJDIR_RELEASE)/general/StdCmdView.o: general/StdCmdView.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c general/StdCmdView.cpp -o $(OBJDIR_RELEASE)/general/StdCmdView.o
+
+$(OBJDIR_RELEASE)/general/StdGeometryCalculator.o: general/StdGeometryCalculator.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(LIB) -c general/StdGeometryCalculator.cpp -o $(OBJDIR_RELEASE)/general/StdGeometryCalculator.o
+	
+$(OBJDIR_RELEASE)/gui/CCFrame.o: gui/CCFrame.cpp gui/CCFrame.h include/QtWidgets
+	$(CXX) $(CFLAGS_RELEASE) $(INCPATH) $(LIB) -c gui/CCFrame.cpp -o $(OBJDIR_RELEASE)/gui/CCFrame.o
+	
+gui/moc_CCFrame.cpp: include/QtWidgets gui/CCFrame.h
+	$(MOC) $(INCPATH) gui/CCFrame.h -o gui/moc_CCFrame.cpp
+	
+$(OBJDIR_RELEASE)/gui/moc_CCFrame.o: gui/moc_CCFrame.cpp gui/CCFrame.h include/QtWidgets
+	$(CXX) $(CFLAGS_RELEASE) $(INCPATH) $(LIB) -c gui/moc_CCFrame.cpp -o $(OBJDIR_RELEASE)/gui/moc_CCFrame.o
+	
+clean:
+	cmd /c if exist $(OUT_RELEASE_IHM) del /f $(OUT_RELEASE_IHM)
+	cmd /c if exist $(OUT_RELEASE_CALC) del /f $(OUT_RELEASE_CALC)
+	cmd /c if exist gui\\moc_CCFrame.cpp del /f gui\\moc_CCFrame.cpp
+	cmd /c rd /s /q $(OBJDIR) 
