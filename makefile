@@ -13,7 +13,7 @@ endif
 CFLAGS = -w -fexceptions -D__NO_INLINE__
 
 ifeq ($(OS),Linux)
-LIB = -Llib -Ilib
+LIB = -Llib -Llib/qt -Ilib
 LDLIBS = -lQt5Widgets -lQt5Gui -lQt5Core -lQt5Concurrent
 else
 LIB = -Llib -Llib\qt -Ilib
@@ -65,7 +65,7 @@ INCPATH = -I. \
 			-Iinclude/unix \
 			-Iinclude/QtGui \
 			-Iinclude/QtWidgets \
-			-Iinclude/windows/QtConcurrent \
+			-Iinclude/QtConcurrent \
 			-Iinclude/unix/QtCore
 
 OUT_RELEASE_IHM = ./Collision-Code-GUI
@@ -76,8 +76,8 @@ INCPATH = -I. \
 			-Iinclude/windows \
 			-Iinclude/QtGui \
 			-Iinclude/QtWidgets \
+			-Iinclude/QtConcurrent \
 			-Iinclude/windows/QtCore \
-			-Iinclude/windows/QtConcurrent \
 			-Iinclude/windows/win32-g++
 
 OUT_RELEASE_IHM = Collision-Code-GUI.exe

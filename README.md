@@ -22,18 +22,23 @@ Contact us at : collisioncode@gmail.com
 
 -- Linux
 
+## Only Console version is aviable now
+
 Open a terminal and execute following commands :
 ```
 sudo apt-get install build-essential
 sudo apt-get install g++
-sudo apt-get install qtchooser
+sudo apt-get install qt5-default
+sudo apt-get install qtbase5-dev-tolls
 git clone https://github.com/Collision-Code/projet/
 cd projet
-make
+make calc
 ```
 
-This will make both versions (console and GUI) of Collision-Code.
+`./Collision-Code` to execute software.
 
-`make calc` will make only console version and `make ihm` will make only GUI version.
+Execute `make` will make both versions (console and GUI) of Collision-Code.
+
+`make calc` will make only console version and `make ihm` will make only GUI version. GUI version still in developpement.
 
 If you compile at least the console version, just type `./Collision-Code --help` to get some help about usage.
