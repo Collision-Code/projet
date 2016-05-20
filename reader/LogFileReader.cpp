@@ -52,25 +52,24 @@ void LogFileReader::setFileName(std::string filename) {
 }
 
 std::vector<Molecule*>* LogFileReader::loadResources() {
-  std::ifstream file(m_filename.c_str(), std::ios::in);
+  std::ifstream file(m_filename.c_str(), std::ios::in); // Main open file
   std::ifstream reFile(m_filename.c_str(), std::ios::in); // For trying to backup informations
 
-  std::vector<Molecule*>* moleculeList = new std::vector<Molecule*>();
-  bool geometryFound = false;
+  std::vector<Molecule*>* moleculeList = new std::vector<Molecule*>(); // Result to send
+  bool geometryFound = false; // Back-up watch
 
-  std::string isPopOption("");
+  std::string isPopOption(""); // Initializing pop option finder
 
   if (file) {
-    std::string line;
-    int atomNumber = -1;
+    std::string line; // Line of file we are currently working
+    int atomNumber = -1; // Atom number of current molecule
     Molecule* newMol = new StdMolecule();
 
     // We are searching for first command line begining by '#'
-    if (!(std::getline(file, line))) {
+    if (!(std::getline(file, line)))
       throw std::string("LogFileReader(loadResources) : empty file.");
-    }
 
-
+    // Verify if file is valid
     while (std::getline(file, line)) {
       boost::char_separator<char> sep(", \t");
       boost::tokenizer<boost::char_separator<char>> tokLine(line, sep);
@@ -282,6 +281,11 @@ std::vector<Molecule*>* LogFileReader::loadResources() {
   return moleculeList;
 }
 
+/**
+ * Check in current line if there is an atom number information
+ * \param string containing current line we work with
+ * \return an integer meaning number of atom composing molecule
+ */
 int LogFileReader::isThereAtomNumber(std::string line) {
   boost::char_separator<char> sep(" \t");
   boost::tokenizer<boost::char_separator<char>> tokLine(line, sep);
@@ -293,7 +297,11 @@ int LogFileReader::isThereAtomNumber(std::string line) {
 
   return -1;
 }
-
+/**
+ * Find in line given option choice to make for reaching charges
+ * \param string containing a line (command line)
+ * \return string containing option to make
+ */
 std::string LogFileReader::findPopOption(std::string commandLine) {
   std::string option("none"); // option return by function
   int foundPopEnd = 0; // last char concerning pop option
@@ -351,6 +359,16 @@ std::string LogFileReader::findPopOption(std::string commandLine) {
 
   return option;
 }
+
+/**
+ * Function taking parameters for parsing file ending and reach charges atoms
+ *  informations.
+ * \param string containing result of line command research
+ * \param an opened file where we continue to reach informations
+ * \param string containing full command line
+ * \param pointer of Molecule showing molecule composition
+ * 
+ */
 void LogFileReader::chargeLoading(std::string isPopOption, std::ifstream &file,
         std::string commandLine, Molecule *newMol) {
   std::string line;

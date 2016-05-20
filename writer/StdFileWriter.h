@@ -16,14 +16,14 @@
 
 #include "FileWriter.h"
 
-#include <fstream>
+#include <iostream>
 
 class StdFileWriter : public FileWriter {
   public:
     /**
      * Creates a new StdFileWriter.
      */
-    StdFileWriter(std::ofstream& file);
+    StdFileWriter(std::ostream& stream);
 
     /**
      * Releases all allocated resources.
@@ -31,15 +31,20 @@ class StdFileWriter : public FileWriter {
     virtual ~StdFileWriter();
 
     /**
-     * Write a result in a file.
+     * Write a result in a stream.
      */
     void visitResult(Result* result);
+
+    /**
+     * Write a mean of results in a file.
+     */
+    void visitMean(Mean* mean);
 
   private:
     /**
      * The stream in which the FileWriter can write.
      */
-    std::ofstream& m_file;
+    std::ostream& m_stream;
 };
 
 #endif

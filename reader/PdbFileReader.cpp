@@ -24,6 +24,8 @@
 #include "../molecule/StdMolecule.h"
 #include "../molecule/StdAtom.h"
 
+#include "../general/AtomInformations.h"
+
 // BUILDER
 PdbFileReader::PdbFileReader(std::string filename)
 {
@@ -55,6 +57,7 @@ std::vector<Molecule*>* PdbFileReader::loadResources() {
   if (file) {
     std::string line;
     std::string lineState("HETATM");
+    std::string lineState2("ATOM");
 
     Molecule* newMol = new StdMolecule();
 
@@ -64,59 +67,38 @@ std::vector<Molecule*>* PdbFileReader::loadResources() {
       boost::tokenizer<boost::char_separator<char> >::iterator param =
         tokenizeParam.begin();
 
-      if (lineState.compare(*param) == 0) {
-        double x, y, z; /* Value in angstrom /!\ */
-        std::string symbol;
-
-        if (param == tokenizeParam.end()) {
+      if (lineState.compare(*param) == 0 || lineState2.compare(*param) == 0) {
+        double x = .0, y = .0, z = .0; /* Value in angstrom /!\ */
+        std::string symbol("none");
+        
+        int pos = 0;
+        int markeup = 0;
+        
+        while (param != tokenizeParam.end()) {
+            if ((*param).find(".") != std::string::npos) {
+                if (markeup == 0) {
+                    x = convertToDouble((*param).c_str());
+                } else if (markeup == 1) {
+                    y = convertToDouble((*param).c_str());
+                } else if (markeup == 2) {
+                    z = convertToDouble((*param).c_str());
+                }
+                ++markeup;
+            } else {
+                if (markeup == 5) {
+                    symbol = *param;
+                    auto symb = AtomInformations::getInstance()->getAtomicNumber(*param);
+                }
+            }
+            ++pos;
+            ++param;
+        }
+        
+        if (markeup != 5 || symbol.compare("none") == 0 || pos < 11 || pos == 0) {
             std::ostringstream oss;
-            oss << "Invalid format of " << m_filename << ".";
+            oss << "Line from file invalid : line(" << i+1 << ").";
             throw oss.str();
         }
-        ++param;
-        if (param == tokenizeParam.end()) {
-            std::ostringstream oss;
-            oss << "Invalid format of " << m_filename << ".";
-            throw oss.str();
-        }
-        ++param;// Extract atom symbol
-        symbol = *param;
-
-        if (param == tokenizeParam.end()) {
-            std::ostringstream oss;
-            oss << "Invalid format of " << m_filename << ".";
-            throw oss.str();
-        }
-        ++param;
-        if (param == tokenizeParam.end()) {
-            std::ostringstream oss;
-            oss << "Invalid format of " << m_filename << ".";
-            throw oss.str();
-        }
-        ++param;
-        if (param == tokenizeParam.end()) {
-            std::ostringstream oss;
-            oss << "Invalid format of " << m_filename << ".";
-            throw oss.str();
-        }
-        ++param; // Extract x coordinate
-        x = convertToDouble((*param).c_str());
-
-        if (param == tokenizeParam.end()) {
-            std::ostringstream oss;
-            oss << "Invalid format of " << m_filename << ".";
-            throw oss.str();
-        }
-        ++param; // Extract y coordinate
-        y = convertToDouble((*param).c_str());
-
-        if (param == tokenizeParam.end()) {
-            std::ostringstream oss;
-            oss << "Invalid format of " << m_filename << ".";
-            throw oss.str();
-        }
-        ++param; // Extract z coordinate
-        z = convertToDouble((*param).c_str());
 
         newMol->addAtom(new StdAtom(new Vector3D(x, y, z), symbol, 0.0));
       }

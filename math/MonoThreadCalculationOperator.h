@@ -29,7 +29,8 @@ class MonoThreadCalculationOperator : public StdCalculationOperator
     /**
      * Constructs a mono thread CalculationOperator.
      */
-    MonoThreadCalculationOperator(Molecule* mol,
+    MonoThreadCalculationOperator(CalculationState* calculationState,
+                                  Molecule* mol,
                                   double temperature,
                                   double potentialEnergyStart,
                                   double timeStepStart,

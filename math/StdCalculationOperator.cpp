@@ -112,7 +112,8 @@ const double amcc[] = {
 
 
 
-StdCalculationOperator::StdCalculationOperator(Molecule* mol,
+StdCalculationOperator::StdCalculationOperator(CalculationState* calculationState,
+                                               Molecule* mol,
                                                double temperature,
                                                double potentialEnergyStart,
                                                double timeStepStart,
@@ -123,7 +124,7 @@ StdCalculationOperator::StdCalculationOperator(Molecule* mol,
                                                double numberPointsMCIntegrationTM,
                                                double energyConservationThreshold,
                                                double numberPointsMCIntegrationEHSSPA)
-  : m_mol(mol), m_maxROLJ(0.0), m_temperature(temperature),
+  : m_calculationState(calculationState), m_mol(mol), m_maxROLJ(0.0), m_temperature(temperature),
   m_potentialEnergyStart(potentialEnergyStart), m_numberCyclesTM(numberCyclesTM),
   m_numberPointsVelocity(numberPointsVelocity), m_numberPointsMCIntegrationTM(numberPointsMCIntegrationTM),
   m_numberPointsMCIntegrationEHSSPA(numberPointsMCIntegrationEHSSPA), m_timeStepStart(timeStepStart),
@@ -153,6 +154,7 @@ StdCalculationOperator::StdCalculationOperator(Molecule* mol,
 StdCalculationOperator::~StdCalculationOperator()
 {
   // Le résultat perdure car récupéré en amont.
+  m_calculationState->oneCalculationFinished();
 }
 
 /**
@@ -294,6 +296,10 @@ void StdCalculationOperator::runTM()
  */
 void StdCalculationOperator::calculateEHSSAndPA(Molecule* mol)
 {
+  // On met a jour le CalculationState.
+  m_calculationState->setEHSSStarted();
+  m_calculationState->setPAStarted();
+
   // Stocke les cosinus des "moitiés" d'angle entre les vecteurs
   // d'incidence et les vecteurs de reflexion (par collisions
   // successives le long d'une trajectoire unique).
@@ -432,6 +438,12 @@ void StdCalculationOperator::calculateEHSSAndPA(Molecule* mol)
   // Enregistrement des résultats.
   m_result->setEHSS(averageEHSSCS);
   m_result->setPA(averagePACS);
+
+  // On met a jour le CalculationState.
+  m_calculationState->setEHSSResult(averageEHSSCS);
+  m_calculationState->setEHSSEnded();
+  m_calculationState->setPAResult(averagePACS);
+  m_calculationState->setPAEnded();
 
   delete mathLib;
 }

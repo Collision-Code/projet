@@ -16,6 +16,8 @@
 
 #include "Result.h"
 
+#include "../observer/state/CalculationState.h"
+
 /**
  * Interface describing how to run cross-section calculations.
  */
@@ -28,6 +30,11 @@ class CalculationOperator {
      * \return a pointer to the results of calculations.
      */
     virtual Result* getResults() = 0;
+
+    /**
+     * \return the calculation state associated with this calculation operator.
+     */
+    virtual CalculationState* getCalculationState() const = 0;
 
     /**
      * Launches the calculation of EHSS and PA.

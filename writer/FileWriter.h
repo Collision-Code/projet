@@ -15,6 +15,7 @@
 #define FILEWRITER_H
 
 #include "../math/Result.h"
+#include "../math/Mean.h"
 
 class FileWriter {
   public:
@@ -27,6 +28,11 @@ class FileWriter {
      * Write a result in a file.
      */
     virtual void visitResult(Result* result) = 0;
+
+    /**
+     * Write a mean of results in a file.
+     */
+    virtual void visitMean(Mean* mean) = 0;
 };
 
 #endif

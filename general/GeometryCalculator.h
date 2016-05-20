@@ -25,6 +25,7 @@
 
 #include <vector>
 
+#include "../observer/Observer.h"
 #include "../molecule/Molecule.h"
 #include "../math/Result.h"
 
@@ -116,6 +117,12 @@ class GeometryCalculator {
      * \param geometries a vector of geometries.
      */
     virtual void setGeometries(std::vector<Molecule*>* geometries) = 0;
+
+    /**
+     * Indicates that these Observers want to be notified about the calculations.
+     * \param obs the observers list.
+     */
+    virtual void takeObservers(std::vector<Observer*> obs) = 0;
 
     /**
      * Launches all the calculations, on all geometries.

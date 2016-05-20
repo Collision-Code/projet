@@ -21,6 +21,9 @@
 #include "../molecule/Molecule.h"
 #include "../writer/FileWriter.h"
 #include "../writer/StdFileWriter.h"
+#include "../observer/Event.h"
+#include "../math/Mean.h"
+#include "../math/StdMean.h"
 
 #include <sstream>
 #include <fstream>
@@ -52,7 +55,7 @@ void StdCmdView::addInputFile(std::string fileName)
 
 void StdCmdView::removeInputFile(std::string fileName)
 {
-  // On cherche si le fichier es dans la vectore.
+  // On cherche si le fichier est dans la vectore.
   for (auto it = m_inputFiles.begin(); it != m_inputFiles.end(); ++it) {
     if (*it == fileName) {
       // Il y est, on le supprime.
@@ -62,26 +65,22 @@ void StdCmdView::removeInputFile(std::string fileName)
   }
 }
 
-void StdCmdView::launch()
-{
+int StdCmdView::loadInputFiles() {
   // Si on n'a pas de fichier en entrée, c'est une erreur.
   if (m_inputFiles.size() == 0) {
     throw std::string("There is no input file.");
-  }
-  // Si on n'a pas de fichier de sortie, c'est aussi une erreur.
-  if (m_outputFile == "") {
-    throw std::string("There is no output file.");
   }
 
   // Va aider a lire les fichiers d'input.
   ExtractResources* reader = new StdExtractResources();
 
-  // La vectore des géométries.
-  std::vector<Molecule*> geometries;
-  // Une map associant les géométries avec le fichier d'où elles viennent.
-  std::map<Molecule*, std::string> geometriesFromFile;
+  // On vide le vector des geometries.
+  m_geometries.clear();
+  // On vide la map d'association.
+  m_geometriesFromFile.clear();
+
   // Pour tous les fichiers d'input, on va charger les géométries,
-  // puis les ajouter à la vectore.
+  // puis les ajouter au vector.
   for (auto it = m_inputFiles.begin(); it != m_inputFiles.end(); ++it) {
     std::vector<Molecule*>* l = reader->getGeometriesFromFile(*it);
 
@@ -94,80 +93,169 @@ void StdCmdView::launch()
     }
     // Sinon, on ajoute toutes les géométries chargées.
     for (auto it2 = l->begin(); it2 != l->end(); ++it2) {
-      geometries.push_back(*it2);
+      m_geometries.push_back(*it2);
       // On pense à les ajouter dans la map aussi, avec leur fichier lié.
-      geometriesFromFile.insert(std::pair<Molecule*, std::string>(*it2, *it));
+      m_geometriesFromFile.insert(std::pair<Molecule*, std::string>(*it2, *it));
     }
     delete l;
   }
+
+  // On notifie les observateurs pour les geometries chargees.
+  notifyObservers(ObservableEvent::GEOMETRIES_LOADED);
 
   delete reader;
 
   // On vérifie si pn doit charger des charges.
   if (m_chargeFile != "") {
     ChargesReader* cR = new ChgChargesReader(m_chargeFile);
-    geometries = *(cR->loadResources(&geometries));
+    m_geometries = *(cR->loadResources(&m_geometries));
     delete cR;
+
+    // On notifie les observateurs pour le fichier de charges.
+    notifyObservers(ObservableEvent::CHARGES_LOADED);
   }
 
-  // On donne les géométries au calculateur.
-  m_calculator->setGeometries(&geometries);
+  return m_geometries.size();
+}
 
-  // On sauvegarde les valeurs globales dans le calculateur.
-  m_calculator->saveCalculationValues();
+void doLines(std::ostringstream& oStream, bool EHSS, bool PA, bool TM) {
+  oStream << " -----";
+  if (EHSS) {
+    oStream << "-----------";
+  }
+  if (EHSS && PA) {
+    oStream << "-";
+  }
+  if (PA) {
+    oStream << "-----------";
+  }
+  if ((EHSS || PA) && TM) {
+    oStream << "-";
+  }
+  if (TM) {
+    oStream << "---------------------------------------------------------------";
+  }
+  oStream << "---" << std::endl;
+}
 
-  // On lance les calculs.
-  m_calculator->launchCalculations();
+void doEntete(std::ostringstream& oStream, bool EHSS, bool PA, bool TM) {
+  doLines(oStream, EHSS, PA, TM);
 
-  // GERER L'ATTENTE DES THREADS DE CALCUL
-  // (avec areCalculationsFinished())
+  oStream << "|   N° ";
+  if (EHSS) {
+    oStream << "\t|   EHS CS";
+  }
+  if (PA) {
+    oStream << "\t|   PA CS";
+  }
+  if (TM) {
+    oStream << "\t|   TM CS" << "\t| Struct Asym Param" << "\t|  Std dev (%)" << "\t|  Failed traj";
+  }
+  oStream << "\t|" << std::endl;
+
+  doLines(oStream, EHSS, PA, TM);
+}
+
+std::string StdCmdView::getResultFormat() const {
+  // Les calculs sont finis, on les enregistre dans le fichier output.
+  std::ostringstream oStream;
+  FileWriter* fileWriter = new StdFileWriter(oStream);
+
+  // Variables globales.
+  oStream << "****************" << std::endl;
+  oStream << "GLOBAL VARIABLES" << std::endl;
+  oStream << "****************" << std::endl;
+  GeometryCalculator::CalculationValues calculationValues = m_calculator->getCalculationValues();
+  oStream << "Temperature = " << calculationValues.temperature << std::endl;
+  if (m_calculator->willEHSSBeCalculated() || m_calculator->willPABeCalculated()) {
+    oStream << "Number of Monte-Carlo trajectories in EHSS/PA methods = " << GlobalParameters::getInstance()->getNbPointsMCIntegrationEHSSPA() << std::endl;
+  }
+  if (m_calculator->willTMBeCalculated()) {
+    oStream << "**" << std::endl;
+    oStream << "Potential energy at start (sw1) = " << calculationValues.potentialEnergyStart << std::endl;
+    oStream << "Potential energy when close to a collision (sw2) = " << calculationValues.potentialEnergyCloseCollision << std::endl;
+    oStream << "Time step at start (dtsf1) = " << calculationValues.timeStepStart << std::endl;
+    oStream << "Time step when close to a collision (dtsf2) = " << calculationValues.timeStepCloseCollision << std::endl;
+    oStream << "Energy conservation threshold = " << calculationValues.energyConservationThreshold << "%" << std::endl;
+    oStream << "**" << std::endl;
+    oStream << "Number of complete cycles for TM method (itn) = " << calculationValues.numberCyclesTM << std::endl;
+    oStream << "Number of points in velocity integration (inp) = " << calculationValues.numberPointsVelocity << std::endl;
+    oStream << "Number of points in Monte-Carlo integrations for TM method (imp) = " << calculationValues.numberPointsMCIntegrationTM << std::endl;
+    oStream << "Total number of points = " << calculationValues.numberCyclesTM * calculationValues.numberPointsVelocity * calculationValues.numberPointsMCIntegrationTM << std::endl;
+  }
+  oStream << std::endl << std::endl;
+  oStream << "*******" << std::endl;
+  oStream << "RESULTS" << std::endl;
+  oStream << "*******";
+
+  // Entete des colonnes.
+  std::string lastFile = "";
+  Mean* mean = new StdMean();
+
+  // Resultats des calculs : lignes.
+  int num = 1;
+  for (auto it = m_geometries.begin(); it != m_geometries.end(); ++it) {
+    Result* result = m_calculator->getResults(*it);
+
+    std::string file = m_geometriesFromFile.find(*it)->second;
+    if (file != lastFile) {
+      oStream << std::endl;
+      oStream << "File : " << file << std::endl;
+      doEntete(oStream, m_calculator->willEHSSBeCalculated(), m_calculator->willPABeCalculated(), m_calculator->willTMBeCalculated());
+      lastFile = file;
+    } else {
+      doLines(oStream, m_calculator->willEHSSBeCalculated(), m_calculator->willPABeCalculated(), m_calculator->willTMBeCalculated());
+    }
+
+    // D'abord, numéro de la géométrie associé au fichier d'où elle vient.
+    oStream << "|\t" << num;
+    mean->addResult(result);
+    result->accept(*fileWriter);
+    oStream << std::endl;
+    ++num;
+  }
+  doLines(oStream, m_calculator->willEHSSBeCalculated(), m_calculator->willPABeCalculated(), m_calculator->willTMBeCalculated());
+  oStream << "|  Mean";
+  mean->accept(*fileWriter);
+  oStream << std::endl;
+  doLines(oStream, m_calculator->willEHSSBeCalculated(), m_calculator->willPABeCalculated(), m_calculator->willTMBeCalculated());
+
+  delete mean;
+  delete fileWriter;
+
+  return oStream.str();
+}
+
+void StdCmdView::saveResults() {
+  // Si on n'a pas de fichier de sortie, c'est une erreur.
+  if (m_outputFile == "") {
+    throw std::string("There is no output file.");
+  }
 
   // Les calculs sont finis, on les enregistre dans le fichier output.
   std::ofstream oFile;
   oFile.open(m_outputFile);
-  FileWriter* fileWriter = new StdFileWriter(oFile);
-
-  // Variables globales.
-  oFile << "****************" << std::endl;
-  oFile << "GLOBAL VARIABLES" << std::endl;
-  oFile << "****************" << std::endl;
-  GeometryCalculator::CalculationValues calculationValues = m_calculator->getCalculationValues();
-  oFile << "Temperature = " << calculationValues.temperature << std::endl;
-  if (m_calculator->willEHSSBeCalculated() || m_calculator->willPABeCalculated()) {
-    oFile << "Number of Monte-Carlo trajectories in EHSS/PA methods = " << GlobalParameters::getInstance()->getNbPointsMCIntegrationEHSSPA() << std::endl;
-  }
-  if (m_calculator->willTMBeCalculated()) {
-    oFile << "**" << std::endl;
-    oFile << "Potential energy at start (sw1) = " << calculationValues.potentialEnergyStart << std::endl;
-    oFile << "Potential energy when close to a collision (sw2) = " << calculationValues.potentialEnergyCloseCollision << std::endl;
-    oFile << "Time step at start (dtsf1) = " << calculationValues.timeStepStart << std::endl;
-    oFile << "Time step when close to a collision (dtsf2) = " << calculationValues.timeStepCloseCollision << std::endl;
-    oFile << "Energy conservation threshold = " << calculationValues.energyConservationThreshold << "%" << std::endl;
-    oFile << "**" << std::endl;
-    oFile << "Number of complete cycles for TM method (itn) = " << calculationValues.numberCyclesTM << std::endl;
-    oFile << "Number of points in velocity integration (inp) = " << calculationValues.numberPointsVelocity << std::endl;
-    oFile << "Number of points in Monte-Carlo integrations for TM method (imp) = " << calculationValues.numberPointsMCIntegrationTM << std::endl;
-    oFile << "Total number of points = " << calculationValues.numberCyclesTM * calculationValues.numberPointsVelocity * calculationValues.numberPointsMCIntegrationTM << std::endl;
-  }
-  oFile << std::endl << std::endl;
-  oFile << "*******" << std::endl;
-  oFile << "RESULTS" << std::endl;
-  oFile << "*******";
-
-  // Resultats des calculs.
-  int num = 1;
-  for (auto it = geometries.begin(); it != geometries.end(); ++it) {
-    Result* result = m_calculator->getResults(*it);
-
-    oFile << std::endl << "-----" << std::endl;
-
-    // D'abord, numéro de la géométrie associé au fichier d'où elle vient.
-    oFile << "Geometry " << num << " from " << geometriesFromFile[*it] << " : " << std::endl;
-    oFile << "-----" << std::endl;
-    result->accept(*fileWriter);
-    oFile << std::endl;
-    ++num;
-  }
-  delete fileWriter;
+  oFile << getResultFormat();
   oFile.close();
+
+  // On notifie les observateurs.
+  notifyObservers(ObservableEvent::FILE_SAVED);
+}
+
+void StdCmdView::launch()
+{
+  // On donne les géométries au calculateur.
+  m_calculator->setGeometries(&m_geometries);
+
+  // On sauvegarde les valeurs globales dans le calculateur.
+  m_calculator->saveCalculationValues();
+
+  // On passe les observateurs du calcul.
+  m_calculator->takeObservers(m_observers);
+
+  // On lance les calculs.
+  m_calculator->launchCalculations();
+
+  // On indique que les calculs sont termines.
+  notifyObservers(ObservableEvent::CALCULATIONS_FINISHED);
 }

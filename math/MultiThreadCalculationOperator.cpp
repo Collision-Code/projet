@@ -25,7 +25,8 @@
 
 
 
-MultiThreadCalculationOperator::MultiThreadCalculationOperator(Molecule* mol,
+MultiThreadCalculationOperator::MultiThreadCalculationOperator(CalculationState* calculationState,
+                                   Molecule* mol,
                                    int maximalNumberThreads,
                                    double temperature,
                                    double potentialEnergyStart,
@@ -37,7 +38,8 @@ MultiThreadCalculationOperator::MultiThreadCalculationOperator(Molecule* mol,
                                    double numberPointsMCIntegrationTM,
                                    double energyConservationThreshold,
                                    double numberPointsMCIntegrationEHSSPA)
-  : StdCalculationOperator(mol,
+  : StdCalculationOperator(calculationState,
+                           mol,
                            temperature,
                            potentialEnergyStart,
                            timeStepStart,
@@ -64,6 +66,9 @@ MultiThreadCalculationOperator::~MultiThreadCalculationOperator()
  */
 void MultiThreadCalculationOperator::calculateTM()
 {
+  // On met a jour le CalculationState.
+  m_calculationState->setTMStarted();
+
   // Parametres de mobil2 :
   // t -> temperature (298)
   //    -> StdCalculationOperator::m_Temperature
@@ -78,7 +83,6 @@ void MultiThreadCalculationOperator::calculateTM()
   // sdevpc -> ??
 
   // im2 est juste une variable pour l'affichage, iu3 et iu2 et ip aussi
-
 
   // Un objet pour manipuler les fonctions mathÃ©matiques.
   MathLib* mathLib = new StdMathLib();
@@ -327,6 +331,9 @@ void MultiThreadCalculationOperator::calculateTM()
 
   omp_set_nested(1);
 
+  // Une variable pour compter le nombre de trajectoires terminees.
+  int countFinishedTrajectories = 0;
+
   // Calcul du nombre de threads max pour une boucle imbriquee.
   MultiThreadCalculationOperator::NumberThread nT = getOptimizedNumberThreads(m_numberCyclesTM);
   omp_set_num_threads(nT.externLoop);
@@ -337,6 +344,8 @@ void MultiThreadCalculationOperator::calculateTM()
     double om12stSum = 0.0;
     double om13stSum = 0.0;
     double om22stSum = 0.0;
+
+    const bool firstThread = (omp_get_thread_num() == 0);
 
     omp_set_num_threads(nT.innerLoop);
 
@@ -369,6 +378,14 @@ void MultiThreadCalculationOperator::calculateTM()
         hold2 *= hold2;
         temp1 += (hold1 * valb2max);
         temp2 += (1.5 * hold2 * valb2max);
+
+        // m_numberPointsMCIntegrationTM trajectoires sont terminees.
+        countFinishedTrajectories++;
+
+        if (firstThread && omp_get_thread_num() == 0) {
+          // Seul le thread principal met a jour l'etat.
+          m_calculationState->setFinishedTrajectories(countFinishedTrajectories);
+        }
       }
 
       temp1 /= m_numberPointsMCIntegrationTM;
@@ -390,6 +407,9 @@ void MultiThreadCalculationOperator::calculateTM()
     om13st[ic] = om13stSum;
     om22st[ic] = om22stSum;
   }
+
+  // On remet a jour l'etat.
+  m_calculationState->setFinishedTrajectories(m_numberCyclesTM * m_numberPointsVelocity * m_numberPointsMCIntegrationTM);
 
 
   // On calcul les moyennes.
@@ -459,6 +479,10 @@ void MultiThreadCalculationOperator::calculateTM()
   delete mathLib;
 
   m_result->setTM(TMCrossSection);
+
+  // On met a jour le CalculationState.
+  m_calculationState->setTMResult(TMCrossSection);
+  m_calculationState->setTMEnded();
 }
 
 MultiThreadCalculationOperator::NumberThread MultiThreadCalculationOperator::getOptimizedNumberThreads(double maxThreadOnExternLoop) {

@@ -15,6 +15,7 @@
 #define STDCALCULATIONOPERATOR_H
 
 #include "CalculationOperator.h"
+
 #include "../molecule/Molecule.h"
 #include "Vector3D.h"
 
@@ -29,7 +30,8 @@ class StdCalculationOperator : public CalculationOperator
      * StdCalculationOperator's constructor.
      * \param mol the molecule to work with.
      */
-    StdCalculationOperator(Molecule* mol,
+    StdCalculationOperator(CalculationState* calculationState,
+                           Molecule* mol,
                            double temperature,
                            double potentialEnergyStart,
                            double timeStepStart,
@@ -51,7 +53,16 @@ class StdCalculationOperator : public CalculationOperator
      * \return a pointer to the results of calculations.
      * Pointer is destroy when the instance of StdCalculationOperator is destroyed.
      */
-    Result* getResults() {return m_result;}
+    Result* getResults() {
+      return m_result;
+    }
+
+    /**
+     * \return the calculation state associated with this calculation operator.
+     */
+    CalculationState* getCalculationState() const {
+      return m_calculationState;
+    }
 
     /**
      * Launches the calculation of EHSS and PA.
@@ -76,6 +87,12 @@ class StdCalculationOperator : public CalculationOperator
      * Guides hard sphere scattering trajectory.
      */
     void che(Molecule* mol, int refl, double& halfCos, double cop, double& yRand, double& zRand, bool& kp, Vector3D& initialIncidenceVector);
+
+  protected:
+    /**
+     * The state to update during calculations to notify the views.
+     */
+    CalculationState* m_calculationState;
 
 
   protected:

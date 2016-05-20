@@ -19,6 +19,7 @@
 #include "../math/CalculationOperator.h"
 #include "../math/MonoThreadCalculationOperator.h"
 #include "../math/MultiThreadCalculationOperator.h"
+#include "../observer/state/CalculationState.h"
 
 #include <string>
 
@@ -115,24 +116,35 @@ void StdGeometryCalculator::launchCalculations()
   for (auto it = m_geometries->begin(); it != m_geometries->end(); ++it) {
     // On a un besoin d'un nouveau calculateur.
     CalculationOperator* calculator;
+
+    // Pour le pattern Observer.
+    CalculationState* calculationState = new CalculationState(*it,
+                                          m_calculationValues.numberCyclesTM *
+                                          m_calculationValues.numberPointsVelocity *
+                                          m_calculationValues.numberPointsMCIntegrationTM);
+    // On ajoute tous les observeurs.
+    std::for_each(m_obsList.begin(), m_obsList.end(), [&](Observer* obs){ calculationState->addObserver(obs); });
+
     if (maxNumberOfThreads <= 1) {
       // 0 ou 1 thread -> MonoThread.
       calculator =
-      new MonoThreadCalculationOperator(*it,
-                                         m_calculationValues.temperature,
-                                         m_calculationValues.potentialEnergyStart,
-                                         m_calculationValues.timeStepStart,
-                                         m_calculationValues.potentialEnergyCloseCollision,
-                                         m_calculationValues.timeStepCloseCollision,
-                                         m_calculationValues.numberCyclesTM,
-                                         m_calculationValues.numberPointsVelocity,
-                                         m_calculationValues.numberPointsMCIntegrationTM,
-                                         m_calculationValues.energyConservationThreshold,
-                                         m_calculationValues.numberPointsMCIntegrationEHSSPA);
+      new MonoThreadCalculationOperator(calculationState,
+                                        *it,
+                                        m_calculationValues.temperature,
+                                        m_calculationValues.potentialEnergyStart,
+                                        m_calculationValues.timeStepStart,
+                                        m_calculationValues.potentialEnergyCloseCollision,
+                                        m_calculationValues.timeStepCloseCollision,
+                                        m_calculationValues.numberCyclesTM,
+                                        m_calculationValues.numberPointsVelocity,
+                                        m_calculationValues.numberPointsMCIntegrationTM,
+                                        m_calculationValues.energyConservationThreshold,
+                                        m_calculationValues.numberPointsMCIntegrationEHSSPA);
     } else {
       // Plus d'un thread -> MultiThread
       calculator =
-      new MultiThreadCalculationOperator(*it,
+      new MultiThreadCalculationOperator(calculationState,
+                                         *it,
                                          maxNumberOfThreads,
                                          m_calculationValues.temperature,
                                          m_calculationValues.potentialEnergyStart,
@@ -163,6 +175,8 @@ void StdGeometryCalculator::launchCalculations()
     // de l'état à true.
     m_calculationsState[*it] = true;
     m_results.insert(std::pair<Molecule*, Result*>(*it, calculator->getResults()));
+
+    //delete calculator->getCalculationState();
     delete calculator;
   }
 }

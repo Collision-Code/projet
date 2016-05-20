@@ -16,7 +16,8 @@ class MultiThreadCalculationOperator : public StdCalculationOperator
     /**
      * Constructs a mono thread CalculationOperator.
      */
-    MultiThreadCalculationOperator(Molecule* mol,
+    MultiThreadCalculationOperator(CalculationState* calculationState,
+                                   Molecule* mol,
                                    int maximalNumberThreads,
                                    double temperature,
                                    double potentialEnergyStart,

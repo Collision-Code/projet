@@ -13,10 +13,9 @@
 
 #include "StdFileWriter.h"
 
-#include <iostream>
 
-StdFileWriter::StdFileWriter(std::ofstream& file)
-  : m_file(file)
+StdFileWriter::StdFileWriter(std::ostream& stream)
+  : m_stream(stream)
 {
 
 }
@@ -29,23 +28,39 @@ StdFileWriter::~StdFileWriter()
 void StdFileWriter::visitResult(Result* result) {
   // EHSS et PA
   if (result->isEHSSPrintable()) {
-      m_file << "EHS cross section = " << result->getEHSS() << std::endl;
-      if (!result->isPAPrintable()) {
-        // Pas de PA ensuite, on saute une ligne.
-        m_file << std::endl;
-      }
+      m_stream << "\t|  " << result->getEHSS();
   }
   if (result->isPAPrintable()) {
-      m_file << "PA cross section = " << result->getPA() << std::endl;
-      // On saute une ligne pour la TM.
-      m_file << std::endl;
+      m_stream << "\t|  " << result->getPA();
   }
 
   // TM
   if (result->isTMPrintable()) {
-      m_file << "TM cross section = " << result->getTM() << std::endl;
-      m_file << "Structural asymmetry parameter = " << result->getStructAsymParam() << std::endl;
-      m_file << "Standard deviation (in percent) = " << result->getStandardDeviation() << std::endl;
-      m_file << "Number of failed trajectories = " << result->getNumberOfFailedTrajectories() << std::endl;
+      m_stream << "\t|  " << result->getTM();
+      m_stream << "\t|\t  " << result->getStructAsymParam() << "\t";
+      m_stream << "\t|\t" << result->getStandardDeviation() << "\t";
+      m_stream << "\t|\t    " << result->getNumberOfFailedTrajectories() << "\t";
   }
+
+  m_stream << "\t|";
+}
+
+void StdFileWriter::visitMean(Mean* mean) {
+  // EHSS et PA
+  if (mean->isEHSSPrintable()) {
+      m_stream << "\t|  " << mean->getMeanEHSS();
+  }
+  if (mean->isPAPrintable()) {
+      m_stream << "\t|  " << mean->getMeanPA();
+  }
+
+  // TM
+  if (mean->isTMPrintable()) {
+      m_stream << "\t|  " << mean->getMeanTM();
+      m_stream << "\t|\t  " << mean->getMeanStructAsymParam() << "\t";
+      m_stream << "\t|\t" << mean->getMeanStandardDeviation() << "\t";
+      m_stream << "\t|\t    " << mean->getMeanNumberOfFailedTrajectories() << "\t";
+  }
+
+  m_stream << "\t|";
 }

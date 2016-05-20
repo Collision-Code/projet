@@ -22,7 +22,8 @@
 
 
 
-MonoThreadCalculationOperator::MonoThreadCalculationOperator(Molecule* mol,
+MonoThreadCalculationOperator::MonoThreadCalculationOperator(CalculationState* calculationState,
+                                   Molecule* mol,
                                    double temperature,
                                    double potentialEnergyStart,
                                    double timeStepStart,
@@ -33,7 +34,8 @@ MonoThreadCalculationOperator::MonoThreadCalculationOperator(Molecule* mol,
                                    double numberPointsMCIntegrationTM,
                                    double energyConservationThreshold,
                                    double numberPointsMCIntegrationEHSSPA)
-  : StdCalculationOperator(mol,
+  : StdCalculationOperator(calculationState,
+                           mol,
                            temperature,
                            potentialEnergyStart,
                            timeStepStart,
@@ -59,6 +61,9 @@ MonoThreadCalculationOperator::~MonoThreadCalculationOperator()
  */
 void MonoThreadCalculationOperator::calculateTM()
 {
+  // On met a jour le CalculationState.
+  m_calculationState->setTMStarted();
+
   // Parametres de mobil2 :
   // t -> temperature (298)
   //    -> StdCalculationOperator::m_Temperature
@@ -306,6 +311,9 @@ void MonoThreadCalculationOperator::calculateTM()
     om22st[ic] = 0.0;
   }
 
+  // Une variable pour compter le nombre de trajectoires terminees.
+  int countFinishedTrajectories = 0;
+
   for (int ic = 0; ic < m_numberCyclesTM; ++ic) {
     for (int ig = 0; ig < m_numberPointsVelocity; ++ig) {
       double valpgst = pgst[ig + 1];
@@ -333,7 +341,14 @@ void MonoThreadCalculationOperator::calculateTM()
         hold2 *= hold2;
         temp1 += (hold1 * valb2max);
         temp2 += (1.5 * hold2 * valb2max);
+
+        // Une trajectoire de plus de terminee.
+        countFinishedTrajectories++;
       }
+
+      // On met a jour le CalculationState puisque des trajectoires ont ete calculees.
+      m_calculationState->setFinishedTrajectories(countFinishedTrajectories);
+
 
       temp1 /= m_numberPointsMCIntegrationTM;
       temp2 /= m_numberPointsMCIntegrationTM;
@@ -418,4 +433,8 @@ void MonoThreadCalculationOperator::calculateTM()
   delete mathLib;
 
   m_result->setTM(TMCrossSection);
+
+  // On met a jour le CalculationState.
+  m_calculationState->setTMResult(TMCrossSection);
+  m_calculationState->setTMEnded();
 }

@@ -108,9 +108,23 @@ class StdGeometryCalculator : public GeometryCalculator
     void setGeometries(std::vector<Molecule*>* geometries);
 
     /**
+     * Indicates that these Observers want to be notified about the calculations.
+     * \param obs the observers list.
+     */
+    void takeObservers(std::vector<Observer*> obs) {
+      m_obsList = obs;
+    }
+
+    /**
      * Launches all the calculations, on all geometries.
      */
     void launchCalculations();
+
+  private:
+    /**
+     * The observers which want to be notified about calculations.
+     */
+    std::vector<Observer*> m_obsList;
 
   private:
     /**
