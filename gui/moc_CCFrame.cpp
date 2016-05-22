@@ -1,7 +1,11 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'CCFrame.h'
 **
+<<<<<<< f46ca95b7fc4c9fb44767ebdd766d667d60e2480
 ** Created by: The Qt Meta Object Compiler version 67 (Qt 5.5.1)
+=======
+** Created by: The Qt Meta Object Compiler version 67 (Qt 5.6.0)
+>>>>>>> Mise à jour
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -12,7 +16,11 @@
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'CCFrame.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
+<<<<<<< f46ca95b7fc4c9fb44767ebdd766d667d60e2480
 #error "This file was generated using the moc from 5.5.1. It"
+=======
+#error "This file was generated using the moc from 5.6.0. It"
+>>>>>>> Mise à jour
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
@@ -218,30 +226,50 @@ void CCFrame::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, voi
             typedef void (CCFrame::*_t)(int );
             if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&CCFrame::totalPoints)) {
                 *result = 0;
+<<<<<<< f46ca95b7fc4c9fb44767ebdd766d667d60e2480
+=======
+                return;
+>>>>>>> Mise à jour
             }
         }
         {
             typedef void (CCFrame::*_t)(int );
             if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&CCFrame::changeProgressBarValue)) {
                 *result = 1;
+<<<<<<< f46ca95b7fc4c9fb44767ebdd766d667d60e2480
+=======
+                return;
+>>>>>>> Mise à jour
             }
         }
         {
             typedef void (CCFrame::*_t)(bool );
             if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&CCFrame::changeProgressBarVisibility)) {
                 *result = 2;
+<<<<<<< f46ca95b7fc4c9fb44767ebdd766d667d60e2480
+=======
+                return;
+>>>>>>> Mise à jour
             }
         }
         {
             typedef void (CCFrame::*_t)(QString );
             if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&CCFrame::changeResults)) {
                 *result = 3;
+<<<<<<< f46ca95b7fc4c9fb44767ebdd766d667d60e2480
+=======
+                return;
+>>>>>>> Mise à jour
             }
         }
         {
             typedef void (CCFrame::*_t)(QString , int , double );
             if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&CCFrame::resultHasChanged)) {
                 *result = 4;
+<<<<<<< f46ca95b7fc4c9fb44767ebdd766d667d60e2480
+=======
+                return;
+>>>>>>> Mise à jour
             }
         }
     }

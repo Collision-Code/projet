@@ -13,10 +13,20 @@ endif
 CFLAGS = -w -fexceptions -D__NO_INLINE__
 
 ifeq ($(OS),Linux)
+<<<<<<< f46ca95b7fc4c9fb44767ebdd766d667d60e2480
 LIB = -Llib -Llib/qt -Ilib
+=======
+LDFLAGS_RELEASE = -Wl,-rpath,lib/qt/unix
+else
+LDFLAGS_RELEASE =
+endif
+
+ifeq ($(OS),Linux)
+LIB = -Ilib -Llib -Llib/qt -Llib/qt/unix
+>>>>>>> Mise à jour
 LDLIBS = -lQt5Widgets -lQt5Gui -lQt5Core -lQt5Concurrent
 else
-LIB = -Llib -Llib\qt -Ilib
+LIB = -Ilib -Llib -Llib\qt -Llib\qt\windows
 LDLIBS = -lqtmain -lQt5Widgets -lQt5Gui -lQt5Core -lQt5Concurrent
 endif
 
@@ -65,7 +75,11 @@ INCPATH = -I. \
 			-Iinclude/unix \
 			-Iinclude/QtGui \
 			-Iinclude/QtWidgets \
+<<<<<<< f46ca95b7fc4c9fb44767ebdd766d667d60e2480
 			-Iinclude/QtConcurrent \
+=======
+			-Iinclude/unix/QtConcurrent \
+>>>>>>> Mise à jour
 			-Iinclude/unix/QtCore
 
 OUT_RELEASE_IHM = ./Collision-Code-GUI
@@ -117,7 +131,7 @@ ihm: prepare gui/moc_CCFrame.cpp out_ihm
 calc: prepare out_calc
 	
 out_ihm: $(OBJ_RELEASE) $(OBJ_RELEASE_IHM)
-	$(CXX) -fopenmp -o $(OUT_RELEASE_IHM) $(OBJ_RELEASE) $(OBJ_RELEASE_IHM) $(INCPATH) $(LIB) $(LDLIBS) -s
+	$(CXX) $(LDFLAGS_RELEASE) -fopenmp -o $(OUT_RELEASE_IHM) $(OBJ_RELEASE) $(OBJ_RELEASE_IHM) $(INCPATH) $(LIB) $(LDLIBS) -s
   
 out_calc: $(OBJ_RELEASE) $(OBJ_RELEASE_CALC)
 	$(CXX) -fopenmp -o $(OUT_RELEASE_CALC) $(OBJ_RELEASE) $(OBJ_RELEASE_CALC) -s

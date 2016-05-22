@@ -1,7 +1,18 @@
 #include "CCFrame.h"
 
 #define _HEIGHT_ITEM_AND_SCROLLBAR 38
+
 #define _TREE_COLUMN_NUMBER 5
+#define _ATOM_COLUMN 0
+#define _X_COLUMN 1
+#define _Y_COLUMN 2
+#define _Z_COLUMN 3
+#define _CHARGE_COLUMN 4
+
+#define _PA_COLUMN 1
+#define _EHSS_COLUMN 2
+#define _TM_COLUMN 3
+
 #define _DEFAULT_ATOM_INFO_FILE "resources/atomInformations.csv"
 
 QString modifyResult(QString method, double d);
@@ -9,6 +20,8 @@ void initializeSpinBox(QSpinBox *sb, int min, int max, int step, int value);
 void initializeDoubleSpinBox(QDoubleSpinBox *dsb, double min, double max,
                              double step, int decimals, double value);
 QString obtainRelativePath(QString filePath);
+void initializeTreeModel(QStandardItemModel *treeModel);
+
 void launch(StdCmdView *cmd);
 
 // CONSTRUCTEUR
@@ -28,65 +41,84 @@ void CCFrame::update(ObservableEvent cond, Observable* obs) {
     CalculationState* cS;
     Molecule *m;
     int i;
+    double total = 0.0;
+    if (m_pa->isChecked()) total += 20.0;
+    if (m_ehss->isChecked()) total += 20.0;
+    if (m_tm->isChecked()) total += 60.0;
+    total = 100.0 / total;
 
     switch(cond) {
     case ObservableEvent::EHSS_STARTED:
-        m_progressBarValue += (5.0 / m_geometriesNb);
-        emit changeProgressBarValue(m_progressBarValue);
+        if (m_model->willEHSSBeCalculated()) {
+            m_progressBarValue += (5.0 / m_geometriesNb);
+            emit changeProgressBarValue(total * m_progressBarValue);
+        }
         break;
 
     case ObservableEvent::PA_STARTED:
-        m_progressBarValue += (5.0 / m_geometriesNb);
-        emit changeProgressBarValue(m_progressBarValue);
+        if (m_model->willPABeCalculated()) {
+            m_progressBarValue += (5.0 / m_geometriesNb);
+            emit changeProgressBarValue(total * m_progressBarValue);
+        }
         break;
 
     case ObservableEvent::TM_STARTED:
-        m_lastTmPercentage = 0.0;
-        m_progressBarValue += (5.0 / m_geometriesNb);
-        emit changeProgressBarValue(m_progressBarValue);
+        if (m_model->willTMBeCalculated()) {
+            m_lastTmPercentage = 0.0;
+            m_progressBarValue += (5.0 / m_geometriesNb);
+            emit changeProgressBarValue(total * m_progressBarValue);
+        }
         break;
 
     case ObservableEvent::EHSS_ENDED:
-        cS = dynamic_cast<CalculationState*>(obs);
-        m = cS->getMolecule();
-        i = 0;
-        while (m_model->getLoadedGeometries()[i] != m) {
-            i++;
+        if (m_model->willEHSSBeCalculated()) {
+            cS = dynamic_cast<CalculationState*>(obs);
+            m = cS->getMolecule();
+            i = 0;
+            while (m_model->getLoadedGeometries()[i] != m) {
+                i++;
+            }
+            emit resultHasChanged("EHSS", i, cS->getEHSSResult());
+            m_progressBarValue += (15.0 / m_geometriesNb);
+            emit changeProgressBarValue(total * m_progressBarValue);
         }
-        emit resultHasChanged("EHSS", i, cS->getEHSSResult());
-        m_progressBarValue += (15.0 / m_geometriesNb);
-        emit changeProgressBarValue(m_progressBarValue);
         break;
 
     case ObservableEvent::PA_ENDED:
-        cS = dynamic_cast<CalculationState*>(obs);
-        m = cS->getMolecule();
-        i = 0;
-        while (m_model->getLoadedGeometries()[i] != m) {
-            i++;
+        if (m_model->willPABeCalculated()) {
+            cS = dynamic_cast<CalculationState*>(obs);
+            m = cS->getMolecule();
+            i = 0;
+            while (m_model->getLoadedGeometries()[i] != m) {
+                i++;
+            }
+            emit resultHasChanged("PA", i, cS->getPAResult());
+            m_progressBarValue += (15.0 / m_geometriesNb);
+            emit changeProgressBarValue(total * m_progressBarValue);
         }
-        emit resultHasChanged("PA", i, cS->getPAResult());
-        m_progressBarValue += (15.0 / m_geometriesNb);
-        emit changeProgressBarValue(m_progressBarValue);
         break;
 
     case ObservableEvent::TM_ENDED:
-        cS = dynamic_cast<CalculationState*>(obs);
-        m = cS->getMolecule();
-        i = 0;
-        while (m_model->getLoadedGeometries()[i] != m) {
-            i++;
+        if (m_model->willTMBeCalculated()) {
+            cS = dynamic_cast<CalculationState*>(obs);
+            m = cS->getMolecule();
+            i = 0;
+            while (m_model->getLoadedGeometries()[i] != m) {
+                i++;
+            }
+            emit resultHasChanged("TM", i, cS->getTMResult());
+            m_progressBarValue += (5.0 / m_geometriesNb);
+            emit changeProgressBarValue(total * m_progressBarValue);
         }
-        emit resultHasChanged("TM", i, cS->getTMResult());
-        m_progressBarValue += (5.0 / m_geometriesNb);
-        emit changeProgressBarValue(m_progressBarValue);
         break;
 
     case ObservableEvent::TRAJECTORY_NUMBER_UPDATE:
-        cS = dynamic_cast<CalculationState*>(obs);
-        m_progressBarValue += (((cS->getPercentageFinishedTrajectories() - m_lastTmPercentage) * 50.0 / 100.0) / m_geometriesNb);
-        m_lastTmPercentage = cS->getPercentageFinishedTrajectories();
-        emit changeProgressBarValue(m_progressBarValue);
+        if (m_model->willTMBeCalculated()) {
+            cS = dynamic_cast<CalculationState*>(obs);
+            m_progressBarValue += (((cS->getPercentageFinishedTrajectories() - m_lastTmPercentage) * 0.5) / m_geometriesNb);
+            m_lastTmPercentage = cS->getPercentageFinishedTrajectories();
+            emit changeProgressBarValue(total * m_progressBarValue);
+        }
         break;
 
     case ObservableEvent::CALCULATIONS_FINISHED:
@@ -218,9 +250,7 @@ void CCFrame::createView() {
 
     m_expandTree = new QCheckBox("Expand all tree nodes");
     m_treeModel = new QStandardItemModel;
-    QStringList list;
-    list << "Symbol" << "xCoord" << "yCoord" << "zCoord" << "Charge";
-    m_treeModel->setHorizontalHeaderLabels(list);
+    initializeTreeModel(m_treeModel);
     m_tree = new QTreeView;
     m_tree->setModel(m_treeModel);
 }
@@ -266,6 +296,7 @@ void CCFrame::placeComponents() {
                     QGroupBox *subgroupbox = new QGroupBox("Chemical File");
                         QHBoxLayout *hbox = new QHBoxLayout;
                             QListView *filesList = new QListView;
+                            filesList->setEditTriggers(QAbstractItemView::NoEditTriggers);
                             filesList->setMaximumHeight(_HEIGHT_ITEM_AND_SCROLLBAR);
                             filesList->setModel(m_chemicalFilesListModel);
                             hbox->addWidget(filesList);
@@ -275,6 +306,7 @@ void CCFrame::placeComponents() {
                     subgroupbox = new QGroupBox("Charge File");
                         hbox = new QHBoxLayout;
                             filesList = new QListView;
+                            filesList->setEditTriggers(QAbstractItemView::NoEditTriggers);
                             filesList->setMaximumHeight(_HEIGHT_ITEM_AND_SCROLLBAR);
                             filesList->setModel(m_chargeFilesListModel);
                             hbox->addWidget(filesList);
@@ -284,6 +316,7 @@ void CCFrame::placeComponents() {
                     subgroupbox = new QGroupBox("Atom Informations File");
                         hbox = new QHBoxLayout;
                             filesList = new QListView;
+                            filesList->setEditTriggers(QAbstractItemView::NoEditTriggers);
                             filesList->setMaximumHeight(_HEIGHT_ITEM_AND_SCROLLBAR);
                             filesList->setModel(m_atomInfosFilesListModel);
                             hbox->addWidget(filesList);
@@ -380,9 +413,9 @@ void CCFrame::createControllers() {
     QObject::connect(m_quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
     QObject::connect(m_aboutAction, SIGNAL(triggered()), this, SLOT(about()));
 
-    QObject::connect(m_pa, SIGNAL(clicked(bool)), this, SLOT(updateModelShouldPABeCalculated(bool)));
-    QObject::connect(m_ehss, SIGNAL(clicked(bool)), this, SLOT(updateModelShouldEHSSBeCalculated(bool)));
-    QObject::connect(m_tm, SIGNAL(clicked(bool)), this, SLOT(updateModelShouldTMBeCalculated(bool)));
+    QObject::connect(m_pa, SIGNAL(toggled(bool)), this, SLOT(updateModelShouldPABeCalculated(bool)));
+    QObject::connect(m_ehss, SIGNAL(toggled(bool)), this, SLOT(updateModelShouldEHSSBeCalculated(bool)));
+    QObject::connect(m_tm, SIGNAL(toggled(bool)), this, SLOT(updateModelShouldTMBeCalculated(bool)));
     QObject::connect(m_startCalculation, SIGNAL(pressed()), this, SLOT(updateModelLaunchCalculation()));
     QObject::connect(this, SIGNAL(changeProgressBarValue(int)), m_progressBar, SLOT(setValue(int)));
     QObject::connect(this, SIGNAL(changeProgressBarVisibility(bool)), m_progressBar, SLOT(setVisible(bool)));
@@ -400,7 +433,7 @@ void CCFrame::createControllers() {
     QObject::connect(m_timeStepAtStart, SIGNAL(valueChanged(double)), this, SLOT(updateModelTimeStepStart(double)));
     QObject::connect(m_timeStepCloseToCollision, SIGNAL(valueChanged(double)), this, SLOT(updateModelTimeStepCloseCollision(double)));
 
-    QObject::connect(m_expandTree, SIGNAL(clicked(bool)), this, SLOT(expandAllNodes(bool)));
+    QObject::connect(m_expandTree, SIGNAL(toggled(bool)), this, SLOT(expandAllNodes(bool)));
     QObject::connect(this, SIGNAL(resultHasChanged(QString,int,double)), this, SLOT(updateResultList(QString,int,double)));
 
     QObject::connect(this, SIGNAL(changeResults(QString)), this, SLOT(printResults(QString)));
@@ -589,21 +622,21 @@ void CCFrame::updateResultList(QString method, int index, double value) {
     QBrush brush(Qt::GlobalColor::red);
     QStandardItem *item;
     if (method == "PA") {
-        item = m_paResultList.takeAt(index);
+        item = m_paResultList.at(index);
         item->setForeground(brush);
         item->setText(modifyResult(method, value));
-        m_tree->resizeColumnToContents(1);
+        m_tree->resizeColumnToContents(_PA_COLUMN);
 
     } else if (method == "EHSS") {
-        item = m_ehssResultList.takeAt(index);
+        item = m_ehssResultList.at(index);
         item->setForeground(brush);
         item->setText(modifyResult(method, value));
-        m_tree->resizeColumnToContents(2);
+        m_tree->resizeColumnToContents(_EHSS_COLUMN);
     } else {
-        item = m_tmResultList.takeAt(index);
+        item = m_tmResultList.at(index);
         item->setForeground(brush);
         item->setText(modifyResult(method, value));
-        m_tree->resizeColumnToContents(3);
+        m_tree->resizeColumnToContents(_TM_COLUMN);
     }
 }
 
@@ -620,6 +653,53 @@ void CCFrame::calculateTotalPoints() {
             * m_velocityPoints->value()
             * m_randomPoints->value();
     emit totalPoints(total);
+}
+
+void CCFrame::writeGeometriesInTreeModel(std::vector<Molecule *> geometries) {
+    m_paResultList.clear();
+    m_ehssResultList.clear();
+    m_tmResultList.clear();
+    for (unsigned int i = 0; i < geometries.size(); i++) {
+        m_paResultList.append(new QStandardItem(modifyResult("PA", -1)));
+        m_ehssResultList.append(new QStandardItem(modifyResult("EHSS", -1)));
+        m_tmResultList.append(new QStandardItem(modifyResult("TM", -1)));
+    }
+    m_treeModel->clear();
+    initializeTreeModel(m_treeModel);
+
+    QStandardItem *item;
+    for (unsigned int i = 0; i < geometries.size(); i++) {
+        Molecule *mol = geometries[i];
+        QString molName = QString::fromStdString(mol->getName());
+        item = new QStandardItem(molName.append(" : (").append(QString::number(i + 1)).append(")"));
+        //item->setCheckable(true);
+        //item->setCheckState(Qt::Checked);
+        QList<QStandardItem *> itemsList;
+        itemsList << item << m_paResultList.at(i) << m_ehssResultList.at(i)
+                  << m_tmResultList.at(i) << new QStandardItem;
+        for (QStandardItem *it : itemsList) {
+            it->setEditable(false);
+            it->setTextAlignment(Qt::AlignCenter);
+        }
+        m_treeModel->appendRow(itemsList);
+
+        std::vector<Atom *> *atoms = mol->getAllAtoms();
+        for (unsigned int j = 0; j < mol->getAtomNumber(); j++) {
+            Atom *atom = (*atoms)[j];
+            item->setChild(j, _ATOM_COLUMN, new QStandardItem(QString::fromStdString(atom->getSymbol())));
+            item->setChild(j, _X_COLUMN, new QStandardItem(QString::number(atom->getPosition()->x)));
+            item->setChild(j, _Y_COLUMN, new QStandardItem(QString::number(atom->getPosition()->y)));
+            item->setChild(j, _Z_COLUMN, new QStandardItem(QString::number(atom->getPosition()->z)));
+            item->setChild(j, _CHARGE_COLUMN, new QStandardItem(QString::number(atom->getCharge())));
+            for (int k = 0; k < _TREE_COLUMN_NUMBER; k++) {
+                item->child(j, k)->setEditable(false);
+            }
+        }
+    }
+
+    for (int i = 0; i < _TREE_COLUMN_NUMBER; i++) {
+        m_tree->resizeColumnToContents(i);
+    }
 }
 
 QString modifyResult(QString method, double d) {
@@ -649,55 +729,6 @@ void initializeDoubleSpinBox(QDoubleSpinBox *dsb, double min, double max,
     dsb->setLocale(QLocale::English);
 }
 
-void CCFrame::writeGeometriesInTreeModel(std::vector<Molecule *> geometries) {
-    m_paResultList.clear();
-    m_ehssResultList.clear();
-    m_tmResultList.clear();
-    for (unsigned int i = 0; i < geometries.size(); i++) {
-        m_paResultList.append(new QStandardItem(modifyResult("PA", -1)));
-        m_ehssResultList.append(new QStandardItem(modifyResult("EHSS", -1)));
-        m_tmResultList.append(new QStandardItem(modifyResult("TM", -1)));
-    }
-    m_treeModel->clear();
-    QStringList list;
-    list << "Symbol" << "xCoord" << "yCoord" << "zCoord" << "Charge";
-    m_treeModel->setHorizontalHeaderLabels(list);
-
-    QStandardItem *item;
-    for (unsigned int i = 0; i < geometries.size(); i++) {
-        Molecule *mol = geometries[i];
-        QString molName = QString::fromStdString(mol->getName());
-        item = new QStandardItem(molName.append(" : (").append(QString::number(i + 1)).append(")"));
-        //item->setCheckable(true);
-        //item->setCheckState(Qt::Checked);
-        QList<QStandardItem *> itemsList;
-        itemsList << item << m_paResultList.at(i) << m_ehssResultList.at(i)
-                  << m_tmResultList.at(i) << new QStandardItem;
-        for (QStandardItem *it : itemsList) {
-            it->setEditable(false);
-            it->setTextAlignment(Qt::AlignCenter);
-        }
-        m_treeModel->appendRow(itemsList);
-
-        std::vector<Atom *> *atoms = mol->getAllAtoms();
-        for (unsigned int j = 0; j < mol->getAtomNumber(); j++) {
-            Atom *atom = (*atoms)[j];
-            item->setChild(j, 0, new QStandardItem(QString::fromStdString(atom->getSymbol())));
-            item->setChild(j, 1, new QStandardItem(QString::number(atom->getPosition()->x)));
-            item->setChild(j, 2, new QStandardItem(QString::number(atom->getPosition()->y)));
-            item->setChild(j, 3, new QStandardItem(QString::number(atom->getPosition()->z)));
-            item->setChild(j, 4, new QStandardItem(QString::number(atom->getCharge())));
-            for (int k = 0; k < _TREE_COLUMN_NUMBER; k++) {
-                item->child(j, k)->setEditable(false);
-            }
-        }
-    }
-
-    for (int i = 0; i < _TREE_COLUMN_NUMBER; i++) {
-        m_tree->resizeColumnToContents(i);
-    }
-}
-
 QString obtainRelativePath(QString filePath) {
     QString relativePath;
     QStringList fromFilePath = filePath.split('/');
@@ -719,4 +750,10 @@ QString obtainRelativePath(QString filePath) {
         fromFilePath.removeFirst();
     }
     return relativePath;
+}
+
+void initializeTreeModel(QStandardItemModel *treeModel) {
+    QStringList list;
+    list << "Symbol" << "xCoord" << "yCoord" << "zCoord" << "Charge";
+    treeModel->setHorizontalHeaderLabels(list);
 }
