@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file RandomGenerator.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief A singleton for generating random numbers with an uniform distribution.
+ */
+
 #ifndef RANDOMGENERATOR_H
 #define RANDOMGENERATOR_H
 

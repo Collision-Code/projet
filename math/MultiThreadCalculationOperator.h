@@ -1,3 +1,24 @@
+/*
+ * Collision-Code
+ * Free software to calculate collision cross-section with Helium.
+ * Université de Rouen
+ * 2016
+ *
+ * Anthony BREANT
+ * Clement POINSOT
+ * Jeremie PANTIN
+ * Mohamed TAKHTOUKH
+ * Thomas CAPET
+ */
+
+/**
+ * \file MultiThreadCalculationOperator.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Implements the operations for calculating cross-section with EHSS, PA and TM methods and many threads.
+ */
+
 #ifndef MULTITHREADCALCULATIONOPERATOR_H
 #define MULTITHREADCALCULATIONOPERATOR_H
 

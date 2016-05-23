@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file ExtractResources.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Interface describing a way of read geometries from a file.
+ */
+
 #ifndef EXTRACTRESOURCES_H
 #define EXTRACTRESOURCES_H
 

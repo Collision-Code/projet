@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file StdMathLib.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Implements mathematic operations.
+ */
+
 #ifndef STDMATHLIB_H
 #define STDMATHLIB_H
 
@@ -22,10 +30,6 @@
 #include <vector>
 
 
-/**
-* StdMathLib implements the interface MathLib to give implementation to
-* all the mathematic functions.
-*/
 class StdMathLib : public MathLib
 {
   public:

@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file MfjFileReader.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Implements a way of loading geometries files from .mfj files.
+ */
+
 #ifndef __MFJFILEREADER_H
 #define __MFJFILEREADER_H
 
@@ -18,35 +26,38 @@
 
 class MfjFileReader : public FileReader {
   public:
-    // BUILDERS
     /**
      * MfjFileReader's constructor.
      * \param filename the name of file to work with.
      */
     MfjFileReader(std::string filename);
-    // DESTRUCTORS
-    virtual ~MfjFileReader();
-    // REQUESTS
+
     /**
-     * Return name of file onload.
+     * Destructor.
+     */
+    virtual ~MfjFileReader();
+
+    /**
+     * Returns name of file on load.
      * \return a string value giving the complete file name.
      */
     std::string getFileName() const {return m_filename;}
-    // COMMANDS
+
     /**
      * Change the actual file by a new one.
      */
     void setFileName(std::string filename);
+
     /**
-     * Return all molecule from the actual file.
+     * Returns all molecule from the actual file.
      * \return a pointer to a molecule vector extract from file.
      */
     std::vector<Molecule*>* loadResources();
 
   private:
     /**
-     * Convert a string in double.
-     * Throw an exception if not possible.
+     * Converts a string in double.
+     * Throws an exception if not possible.
      */
     double convertToDouble(const std::string& s);
 
@@ -57,5 +68,5 @@ class MfjFileReader : public FileReader {
     std::string m_filename;
 };
 
-#endif // __MFJFILEREADER_H
+#endif
 

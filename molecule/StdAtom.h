@@ -44,14 +44,17 @@ class StdAtom : public Atom {
      * Returns position of atom.
      */
     Vector3D* getPosition() const {return m_position;}
+
     /**
      * Returns the initial position of atom.
      */
     Vector3D* getInitialPosition() const {return m_initialPosition;}
+
     /**
      * Return symbol of atom.
      */
     std::string getSymbol() const {return m_symbol;}
+
     /**
      * Returns charge value of atom.
      */
@@ -59,19 +62,19 @@ class StdAtom : public Atom {
 
     /**
      * Sets a new position for the atom.
-     * @param One coordinate.
-     * @pre c != NULL
+     * \param c One coordinate.
      */
     void setPosition(Vector3D *c);
+
     /**
      * Sets a new symbol value for atom.
-     * @param A string value.
-     * @pre n != ""
+     * \param s A string value.
      */
     void setSymbol(std::string s);
+
     /**
      * Sets a new charge value for atom.
-     * @param One double.
+     * \param c One double.
      */
     void setCharge(double c) {m_charge = c;}
 

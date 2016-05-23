@@ -1,32 +1,28 @@
 #include "CCFrame.h"
 
-#define _HEIGHT_ITEM_AND_SCROLLBAR 38
-
-#define _TREE_COLUMN_NUMBER 5
-#define _ATOM_COLUMN 0
-#define _X_COLUMN 1
-#define _Y_COLUMN 2
-#define _Z_COLUMN 3
-#define _CHARGE_COLUMN 4
-
-#define _PA_COLUMN 1
-#define _EHSS_COLUMN 2
-#define _TM_COLUMN 3
-
-#define _DEFAULT_ATOM_INFO_FILE "resources/atomInformations.csv"
+const int CCFrame::m_HeightItemAndScrollbar = 38;
+const QString CCFrame::m_DefaultAtomInfosFiles = "resources/atomInformations.csv";
+const std::array<QString, 5> CCFrame::m_ColumnNames = {"Symbol", "xCoord", "yCoord", "zCoord", "Charge"};
+const QString CCFrame::m_PaToStr = "PA";
+const QString CCFrame::m_EhssToStr = "EHSS";
+const QString CCFrame::m_TmToStr = "TM";
+const std::map<QString, int> CCFrame::m_Methods = {
+    {CCFrame::m_PaToStr, 1}, {CCFrame::m_EhssToStr, 2}, {CCFrame::m_TmToStr, 3}
+};
+const QString CCFrame::m_DefaultOutputFileName = "resCollision.ccout";
+const QString CCFrame::m_NoFile = "No file";
 
 QString modifyResult(QString method, double d);
 void initializeSpinBox(QSpinBox *sb, int min, int max, int step, int value);
 void initializeDoubleSpinBox(QDoubleSpinBox *dsb, double min, double max,
                              double step, int decimals, double value);
 QString obtainRelativePath(QString filePath);
-void initializeTreeModel(QStandardItemModel *treeModel);
 
 void launch(StdCmdView *cmd);
 
 // CONSTRUCTEUR
 CCFrame::CCFrame() {
-    AtomInformations::getInstance()->loadFile(_DEFAULT_ATOM_INFO_FILE);
+    AtomInformations::getInstance()->loadFile(m_DefaultAtomInfosFiles.toStdString());
     m_model = new StdCmdView();
     m_model->addObserver(this);
     createView();
@@ -45,7 +41,7 @@ void CCFrame::update(ObservableEvent cond, Observable* obs) {
     if (m_pa->isChecked()) total += 20.0;
     if (m_ehss->isChecked()) total += 20.0;
     if (m_tm->isChecked()) total += 60.0;
-    total = 100.0 / total;
+    if (total != 0) total = 100.0 / total;
 
     switch(cond) {
     case ObservableEvent::EHSS_STARTED:
@@ -78,7 +74,7 @@ void CCFrame::update(ObservableEvent cond, Observable* obs) {
             while (m_model->getLoadedGeometries()[i] != m) {
                 i++;
             }
-            emit resultHasChanged("EHSS", i, cS->getEHSSResult());
+            emit resultHasChanged(m_EhssToStr, i, cS->getEHSSResult());
             m_progressBarValue += (15.0 / m_geometriesNb);
             emit changeProgressBarValue(total * m_progressBarValue);
         }
@@ -92,7 +88,7 @@ void CCFrame::update(ObservableEvent cond, Observable* obs) {
             while (m_model->getLoadedGeometries()[i] != m) {
                 i++;
             }
-            emit resultHasChanged("PA", i, cS->getPAResult());
+            emit resultHasChanged(m_PaToStr, i, cS->getPAResult());
             m_progressBarValue += (15.0 / m_geometriesNb);
             emit changeProgressBarValue(total * m_progressBarValue);
         }
@@ -106,7 +102,7 @@ void CCFrame::update(ObservableEvent cond, Observable* obs) {
             while (m_model->getLoadedGeometries()[i] != m) {
                 i++;
             }
-            emit resultHasChanged("TM", i, cS->getTMResult());
+            emit resultHasChanged(m_TmToStr, i, cS->getTMResult());
             m_progressBarValue += (5.0 / m_geometriesNb);
             emit changeProgressBarValue(total * m_progressBarValue);
         }
@@ -115,7 +111,8 @@ void CCFrame::update(ObservableEvent cond, Observable* obs) {
     case ObservableEvent::TRAJECTORY_NUMBER_UPDATE:
         if (m_model->willTMBeCalculated()) {
             cS = dynamic_cast<CalculationState*>(obs);
-            m_progressBarValue += (((cS->getPercentageFinishedTrajectories() - m_lastTmPercentage) * 0.5) / m_geometriesNb);
+            m_progressBarValue += (((cS->getPercentageFinishedTrajectories() - m_lastTmPercentage) * 0.5)
+                                   / m_geometriesNb);
             m_lastTmPercentage = cS->getPercentageFinishedTrajectories();
             emit changeProgressBarValue(total * m_progressBarValue);
         }
@@ -140,7 +137,9 @@ void CCFrame::createView() {
     setWindowTitle("Collision Code");
     setMinimumSize(600, 500);
 
-    m_FutureWatcher = new QFutureWatcher<void>;
+    m_worker = new Worker;
+    m_workerThread = new QThread;
+    m_worker->moveToThread(m_workerThread);
 
     // Widgets des menus et leurs raccourcis
     m_openChemicalFileAction = new QAction("Chemical &File", this);
@@ -162,9 +161,9 @@ void CCFrame::createView() {
 
     // Widgets de la partie centrale
     // Méthodes utilisées
-    m_pa = new QCheckBox("PA");
-    m_ehss = new QCheckBox("EHSS");
-    m_tm = new QCheckBox("TM");
+    m_pa = new QCheckBox(m_PaToStr);
+    m_ehss = new QCheckBox(m_EhssToStr);
+    m_tm = new QCheckBox(m_TmToStr);
     m_He = new QRadioButton("He");
     m_N2 = new QRadioButton("N2");
     m_pa->setChecked(true);
@@ -231,9 +230,9 @@ void CCFrame::createView() {
 
 
     QStringList noFileList;
-    noFileList << "No File";
+    noFileList << m_NoFile;
     QStringList defaultFileList;
-    defaultFileList << _DEFAULT_ATOM_INFO_FILE;
+    defaultFileList << m_DefaultAtomInfosFiles;
     m_chemicalFilesListModel = new QStringListModel(noFileList);
     m_chargeFilesListModel = new QStringListModel(noFileList);
     m_atomInfosFilesListModel = new QStringListModel(defaultFileList);
@@ -250,7 +249,7 @@ void CCFrame::createView() {
 
     m_expandTree = new QCheckBox("Expand all tree nodes");
     m_treeModel = new QStandardItemModel;
-    initializeTreeModel(m_treeModel);
+    initializeTreeModel();
     m_tree = new QTreeView;
     m_tree->setModel(m_treeModel);
 }
@@ -262,12 +261,12 @@ void CCFrame::createView() {
 void CCFrame::placeComponents() {
     // Barre des menus
     QMenu *fileMenu = menuBar()->addMenu("&File");
-    QMenu *openMenu = fileMenu->addMenu("&Open");
+    m_openMenu = fileMenu->addMenu("&Open");
     QMenu *helpMenu = menuBar()->addMenu("&?");
 
-    openMenu->addAction(m_openChemicalFileAction);
-    openMenu->addAction(m_openChargeFileAction);
-    openMenu->addAction(m_openAtomInformationAction);
+    m_openMenu->addAction(m_openChemicalFileAction);
+    m_openMenu->addAction(m_openChargeFileAction);
+    m_openMenu->addAction(m_openAtomInformationAction);
     fileMenu->addAction(m_saveAction);
     fileMenu->addAction(m_quitAction);
 
@@ -286,7 +285,7 @@ void CCFrame::placeComponents() {
     QTabWidget *tabs = new QTabWidget(this);
 
     // Onglet de configuration
-    QWidget *tab = new QWidget;
+    m_firstTab = new QWidget;
 
         QVBoxLayout *vbox = new QVBoxLayout;
 
@@ -297,7 +296,7 @@ void CCFrame::placeComponents() {
                         QHBoxLayout *hbox = new QHBoxLayout;
                             QListView *filesList = new QListView;
                             filesList->setEditTriggers(QAbstractItemView::NoEditTriggers);
-                            filesList->setMaximumHeight(_HEIGHT_ITEM_AND_SCROLLBAR);
+                            filesList->setMaximumHeight(m_HeightItemAndScrollbar);
                             filesList->setModel(m_chemicalFilesListModel);
                             hbox->addWidget(filesList);
                             hbox->addWidget(m_chemicalFileOpenButton);
@@ -307,7 +306,7 @@ void CCFrame::placeComponents() {
                         hbox = new QHBoxLayout;
                             filesList = new QListView;
                             filesList->setEditTriggers(QAbstractItemView::NoEditTriggers);
-                            filesList->setMaximumHeight(_HEIGHT_ITEM_AND_SCROLLBAR);
+                            filesList->setMaximumHeight(m_HeightItemAndScrollbar);
                             filesList->setModel(m_chargeFilesListModel);
                             hbox->addWidget(filesList);
                             hbox->addWidget(m_chargeFileOpenButton);
@@ -317,7 +316,7 @@ void CCFrame::placeComponents() {
                         hbox = new QHBoxLayout;
                             filesList = new QListView;
                             filesList->setEditTriggers(QAbstractItemView::NoEditTriggers);
-                            filesList->setMaximumHeight(_HEIGHT_ITEM_AND_SCROLLBAR);
+                            filesList->setMaximumHeight(m_HeightItemAndScrollbar);
                             filesList->setModel(m_atomInfosFilesListModel);
                             hbox->addWidget(filesList);
                             hbox->addWidget(m_atomInfosFileOpenButton);
@@ -344,12 +343,12 @@ void CCFrame::placeComponents() {
                     hbox->addWidget(subgroupbox);
                 groupbox->setLayout(hbox);
             vbox->addWidget(groupbox);
-        tab->setLayout(vbox);
-    tabs->addTab(tab, "Configuration");
+        m_firstTab->setLayout(vbox);
+    tabs->addTab(m_firstTab, "Configuration");
 
 
     // Réglages des paramètres avancés
-    tab = new QWidget;
+    m_secondTab = new QWidget;
         vbox = new QVBoxLayout;
             groupbox = new QGroupBox("Threads");
                 QFormLayout *form = new QFormLayout;
@@ -377,12 +376,12 @@ void CCFrame::placeComponents() {
                 form->addRow("Time step when close to a collision (dtsf2):", m_timeStepCloseToCollision);
                 groupbox->setLayout(form);
             vbox->addWidget(groupbox);
-        tab->setLayout(vbox);
-    tabs->addTab(tab, "Advanced Parameters");
+        m_secondTab->setLayout(vbox);
+    tabs->addTab(m_secondTab, "Advanced Parameters");
 
 
     // Onglet d'affichage des données du modèle
-    tab = new QWidget;
+    QWidget *tab = new QWidget;
         vbox = new QVBoxLayout;
             vbox->addWidget(m_expandTree);
             vbox->addWidget(m_tree);
@@ -412,6 +411,7 @@ void CCFrame::createControllers() {
     QObject::connect(m_saveResultsButton, SIGNAL(pressed()), this, SLOT(saveResults()));
     QObject::connect(m_quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
     QObject::connect(m_aboutAction, SIGNAL(triggered()), this, SLOT(about()));
+    QObject::connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(killThreadAndExit()));
 
     QObject::connect(m_pa, SIGNAL(toggled(bool)), this, SLOT(updateModelShouldPABeCalculated(bool)));
     QObject::connect(m_ehss, SIGNAL(toggled(bool)), this, SLOT(updateModelShouldEHSSBeCalculated(bool)));
@@ -419,6 +419,10 @@ void CCFrame::createControllers() {
     QObject::connect(m_startCalculation, SIGNAL(pressed()), this, SLOT(updateModelLaunchCalculation()));
     QObject::connect(this, SIGNAL(changeProgressBarValue(int)), m_progressBar, SLOT(setValue(int)));
     QObject::connect(this, SIGNAL(changeProgressBarVisibility(bool)), m_progressBar, SLOT(setVisible(bool)));
+    QObject::connect(this, SIGNAL(disableWidgets(bool)), m_startCalculation, SLOT(setVisible(bool)));
+    QObject::connect(this, SIGNAL(disableWidgets(bool)), m_openMenu, SLOT(setEnabled(bool)));
+    QObject::connect(this, SIGNAL(disableWidgets(bool)), m_firstTab, SLOT(setEnabled(bool)));
+    QObject::connect(this, SIGNAL(disableWidgets(bool)), m_secondTab, SLOT(setEnabled(bool)));
 
     QObject::connect(m_threads, SIGNAL(valueChanged(int)), this, SLOT(updateModelMaxNumberThreads(int)));
     QObject::connect(m_monteCarloTrajectories, SIGNAL(valueChanged(int)), this, SLOT(updateModelNbPointsMCIntegrationEHSSPA(int)));
@@ -438,8 +442,9 @@ void CCFrame::createControllers() {
 
     QObject::connect(this, SIGNAL(changeResults(QString)), this, SLOT(printResults(QString)));
 
-    QObject::connect(m_FutureWatcher, SIGNAL(finished()), this, SLOT(resultsAreReady()));
-
+    QObject::connect(m_workerThread, SIGNAL(finished()), m_worker, SLOT(deleteLater()));
+    QObject::connect(this, SIGNAL(callWorkerThread(StdCmdView*)), m_worker, SLOT(doWork(StdCmdView*)));
+    QObject::connect(m_worker, SIGNAL(finished()), this, SLOT(resultsAreReady()));
 }
 
 void CCFrame::openChemicalFile() {
@@ -457,13 +462,23 @@ void CCFrame::openChemicalFile() {
             m_model->removeInputFile(oldFile);
         }
 
-        QStringList list;
-        list.append(path);
-        m_chemicalFilesListModel->setStringList(list);
+        QStringList chemicalList;
+        try {
+            m_model->setChargeFile("");
+            QStringList chargeList;
+            chargeList.append(m_NoFile);
+            m_chargeFilesListModel->setStringList(chargeList);
 
-        m_model->addInputFile(obtainRelativePath(path).toStdString());
-        m_model->loadInputFiles();
-        writeGeometriesInTreeModel(m_model->getLoadedGeometries());
+            m_model->addInputFile(obtainRelativePath(path).toLatin1().toStdString());
+            m_model->loadInputFiles();
+            writeGeometriesInTreeModel(m_model->getLoadedGeometries());
+            chemicalList.append(path);
+        } catch(std::string caught) {
+            QMessageBox::critical(this, "Error", QString::fromStdString(caught));
+            chemicalList.append(m_NoFile);
+            initializeTreeModel();
+        }
+        m_chemicalFilesListModel->setStringList(chemicalList);
     }
 }
 
@@ -476,9 +491,18 @@ void CCFrame::openChargeFile() {
     );
     if (!path.isEmpty()) {
         QStringList list;
-        list.append(path);
+        try {
+            m_model->setChargeFile(obtainRelativePath(path).toStdString());
+            m_model->loadInputFiles();
+            writeGeometriesInTreeModel(m_model->getLoadedGeometries());
+            list.append(path);
+        } catch(std::string caught) {
+            m_model->setChargeFile("");
+            writeGeometriesInTreeModel(m_model->getLoadedGeometries());
+            list.append(m_NoFile);
+            QMessageBox::critical(this, "Error", QString::fromStdString(caught));
+        }
         m_chargeFilesListModel->setStringList(list);
-        m_model->setChargeFile(obtainRelativePath(path).toStdString());
     }
 }
 
@@ -486,14 +510,18 @@ void CCFrame::openAtomInfosFile() {
     QString path = QFileDialog::getOpenFileName(
         this,
         "Open",
-        _DEFAULT_ATOM_INFO_FILE,
+        m_DefaultAtomInfosFiles,
         "Atom Informations files (*.csv);;All files (*.*)"
     );
     if (!path.isEmpty()) {
-        QStringList list;
-        list.append(path);
-        m_atomInfosFilesListModel->setStringList(list);
-        AtomInformations::getInstance()->loadFile(obtainRelativePath(path).toStdString());
+        try {
+            AtomInformations::getInstance()->loadFile(obtainRelativePath(path).toStdString());
+            QStringList list;
+            list.append(path);
+            m_atomInfosFilesListModel->setStringList(list);
+        } catch(std::string caught) {
+            QMessageBox::critical(this, "Error", QString::fromStdString(caught));
+        }
     }
 }
 
@@ -501,11 +529,15 @@ void CCFrame::saveResults() {
     QString path = QFileDialog::getSaveFileName(
         this,
         "Save",
-        "resCollision.ccout",
+        m_DefaultOutputFileName,
         "Collision Code Output Format (*.ccout);;All files (*.*)"
     );
-    m_model->setOutputFile(obtainRelativePath(path).toStdString());
-    m_model->saveResults();
+    try {
+        m_model->setOutputFile(obtainRelativePath(path).toStdString());
+        m_model->saveResults();
+    } catch(std::string caught) {
+        QMessageBox::critical(this, "Error", QString::fromStdString(caught));
+    }
 }
 
 void CCFrame::about() {
@@ -534,17 +566,14 @@ void CCFrame::updateModelShouldTMBeCalculated(bool value) {
     m_model->shouldTMBeCalculated(value);
 }
 
-void launch(StdCmdView *cmd) {
-    cmd->launch();
-}
-
 void CCFrame::updateModelLaunchCalculation() {
     m_geometriesNb = m_model->getLoadedGeometries().size();
     m_progressBarValue = 0;
     emit changeProgressBarValue(m_progressBarValue);
+    emit disableWidgets(false);
     emit changeProgressBarVisibility(true);
-    m_Future = QtConcurrent::run(launch, m_model);
-    m_FutureWatcher->setFuture(m_Future);
+    m_workerThread->start();
+    emit callWorkerThread(m_model);
 }
 
 void CCFrame::updateModelMaxNumberThreads(int value) {
@@ -621,31 +650,38 @@ void CCFrame::printResults(QString str) {
 void CCFrame::updateResultList(QString method, int index, double value) {
     QBrush brush(Qt::GlobalColor::red);
     QStandardItem *item;
-    if (method == "PA") {
+    if (method == m_PaToStr) {
         item = m_paResultList.at(index);
         item->setForeground(brush);
         item->setText(modifyResult(method, value));
-        m_tree->resizeColumnToContents(_PA_COLUMN);
+        m_tree->resizeColumnToContents(m_Methods.at(m_PaToStr));
 
-    } else if (method == "EHSS") {
+    } else if (method == m_EhssToStr) {
         item = m_ehssResultList.at(index);
         item->setForeground(brush);
         item->setText(modifyResult(method, value));
-        m_tree->resizeColumnToContents(_EHSS_COLUMN);
+        m_tree->resizeColumnToContents(m_Methods.at(m_EhssToStr));
     } else {
         item = m_tmResultList.at(index);
         item->setForeground(brush);
         item->setText(modifyResult(method, value));
-        m_tree->resizeColumnToContents(_TM_COLUMN);
+        m_tree->resizeColumnToContents(m_Methods.at(m_TmToStr));
     }
 }
 
 void CCFrame::resultsAreReady() {
-    m_Future.cancel();
-    m_Future.waitForFinished();
     emit changeResults(QString::fromStdString(m_model->getResultFormat()));
     m_progressBar->setVisible(false);
+    m_startCalculation->setVisible(true);
+    m_openMenu->setEnabled(true);
+    m_firstTab->setEnabled(true);
+    m_secondTab->setEnabled(true);
     statusBar()->showMessage("Calculations finished", 4000);
+}
+
+void CCFrame::killThreadAndExit() {
+    m_workerThread->terminate();
+    m_workerThread->wait();
 }
 
 void CCFrame::calculateTotalPoints() {
@@ -660,12 +696,11 @@ void CCFrame::writeGeometriesInTreeModel(std::vector<Molecule *> geometries) {
     m_ehssResultList.clear();
     m_tmResultList.clear();
     for (unsigned int i = 0; i < geometries.size(); i++) {
-        m_paResultList.append(new QStandardItem(modifyResult("PA", -1)));
-        m_ehssResultList.append(new QStandardItem(modifyResult("EHSS", -1)));
-        m_tmResultList.append(new QStandardItem(modifyResult("TM", -1)));
+        m_paResultList.append(new QStandardItem(modifyResult(m_PaToStr, -1)));
+        m_ehssResultList.append(new QStandardItem(modifyResult(m_EhssToStr, -1)));
+        m_tmResultList.append(new QStandardItem(modifyResult(m_TmToStr, -1)));
     }
-    m_treeModel->clear();
-    initializeTreeModel(m_treeModel);
+    initializeTreeModel();
 
     QStandardItem *item;
     for (unsigned int i = 0; i < geometries.size(); i++) {
@@ -686,21 +721,34 @@ void CCFrame::writeGeometriesInTreeModel(std::vector<Molecule *> geometries) {
         std::vector<Atom *> *atoms = mol->getAllAtoms();
         for (unsigned int j = 0; j < mol->getAtomNumber(); j++) {
             Atom *atom = (*atoms)[j];
-            item->setChild(j, _ATOM_COLUMN, new QStandardItem(QString::fromStdString(atom->getSymbol())));
-            item->setChild(j, _X_COLUMN, new QStandardItem(QString::number(atom->getPosition()->x)));
-            item->setChild(j, _Y_COLUMN, new QStandardItem(QString::number(atom->getPosition()->y)));
-            item->setChild(j, _Z_COLUMN, new QStandardItem(QString::number(atom->getPosition()->z)));
-            item->setChild(j, _CHARGE_COLUMN, new QStandardItem(QString::number(atom->getCharge())));
-            for (int k = 0; k < _TREE_COLUMN_NUMBER; k++) {
+            item->setChild(j, 0, new QStandardItem(QString::fromStdString(atom->getSymbol())));
+            item->setChild(j, 1, new QStandardItem(QString::number(atom->getPosition()->x)));
+            item->setChild(j, 2, new QStandardItem(QString::number(atom->getPosition()->y)));
+            item->setChild(j, 3, new QStandardItem(QString::number(atom->getPosition()->z)));
+            item->setChild(j, 4, new QStandardItem(QString::number(atom->getCharge())));
+            for (unsigned int k = 0; k < m_ColumnNames.size(); k++) {
                 item->child(j, k)->setEditable(false);
             }
         }
     }
 
-    for (int i = 0; i < _TREE_COLUMN_NUMBER; i++) {
+    for (unsigned int i = 0; i < m_ColumnNames.size(); i++) {
         m_tree->resizeColumnToContents(i);
     }
 }
+
+void CCFrame::initializeTreeModel() {
+    m_treeModel->clear();
+    QStringList list;
+    for (unsigned int i = 0; i < m_ColumnNames.size(); i++) {
+        list.append(m_ColumnNames[i]);
+    }
+    m_treeModel->setHorizontalHeaderLabels(list);
+}
+
+
+
+
 
 QString modifyResult(QString method, double d) {
     QString res = method;
@@ -720,7 +768,6 @@ void initializeSpinBox(QSpinBox *sb, int min, int max, int step, int value) {
 }
 void initializeDoubleSpinBox(QDoubleSpinBox *dsb, double min, double max,
                              double step, int decimals, double value) {
-    //dsb = new QDoubleSpinBox;
     dsb->setRange(min, max);
     dsb->setDecimals(decimals);
     dsb->setValue(value);
@@ -742,18 +789,11 @@ QString obtainRelativePath(QString filePath) {
         fromCurrentDir.removeFirst();
     }
     while (!fromFilePath.isEmpty()) {
-        if (fromFilePath.size() == 1) {
-            relativePath.append(fromFilePath.first());
-        } else {
-            relativePath.append(fromFilePath.first() + "/");
+        relativePath.append(fromFilePath.first());
+        if (fromFilePath.size() > 1) {
+            relativePath.append("/");
         }
         fromFilePath.removeFirst();
     }
     return relativePath;
-}
-
-void initializeTreeModel(QStandardItemModel *treeModel) {
-    QStringList list;
-    list << "Symbol" << "xCoord" << "yCoord" << "zCoord" << "Charge";
-    treeModel->setHorizontalHeaderLabels(list);
 }

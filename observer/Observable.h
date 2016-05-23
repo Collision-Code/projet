@@ -1,3 +1,24 @@
+/*
+ * Collision-Code
+ * Free software to calculate collision cross-section with Helium.
+ * Université de Rouen
+ * 2016
+ *
+ * Anthony BREANT
+ * Clement POINSOT
+ * Jeremie PANTIN
+ * Mohamed TAKHTOUKH
+ * Thomas CAPET
+ */
+
+/**
+ * \file Observable.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Implements the "Observable" part of the pattern Observer/Observable.
+ */
+
 #ifndef OBSERVABLE_H
 #define OBSERVABLE_H
 

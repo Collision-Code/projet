@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file ChgChargesReader.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Implements a way to read and charge charges from a .chg file.
+ */
+
 #ifndef __CHGCHARGESREADER_H
 #define __CHGCHARGESREADER_H
 
@@ -18,30 +26,34 @@
 
 class ChgChargesReader : public ChargesReader {
   public:
-    // BUILDERS
     /**
-     * ChgFileReader's constructor.
+     * Constructor.
      * \param filename the name of file to work with.
      */
     ChgChargesReader(std::string filename);
-    // DESTRUCTORS
+
+    /**
+     * Destructor.
+     */
     virtual ~ChgChargesReader();
-    // REQUESTS
+
     /**
      * Return name of file onload.
      * \return a string value giving the complete file name.
      */
     std::string getFileName() const {return m_filename;}
-    // COMMANDS
+
     /**
      * Change the actual file by a new one.
      */
     void setFileName(std::string filename);
+
     /**
      * Return all molecule from the actual file.
      * \return a pointer to a molecule vector extract from file.
      */
     std::vector<Molecule*>* loadResources(std::vector<Molecule*>* molGeometries);
+
   private:
     /**
      * Name of file to work with.
@@ -49,4 +61,4 @@ class ChgChargesReader : public ChargesReader {
     std::string m_filename;
 };
 
-#endif // __CHGCHARGESREADER_H
+#endif

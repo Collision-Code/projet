@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file MathLib.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Interface describing mathematic operations.
+ */
+
 #ifndef MATHLIB_H
 #define MATHLIB_H
 
@@ -22,12 +30,12 @@
 
 #include <vector>
 
-/**
-* Interface describing all the available mathematic functions.
-*/
 class MathLib
 {
   public:
+    /**
+     * Destructor.
+     */
     virtual ~MathLib() {};
 
     /**

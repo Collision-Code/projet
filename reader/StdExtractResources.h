@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file StdExtractResources.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Implements a way of read geometries from a file.
+ */
+
 #ifndef STDEXTRACTRESOURCES_H
 #define STDEXTRACTRESOURCES_H
 

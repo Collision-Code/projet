@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file FileWriter.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Interface describing a way of write results and means of results in a stream.
+ */
+
 #ifndef FILEWRITER_H
 #define FILEWRITER_H
 
@@ -25,12 +33,12 @@ class FileWriter {
     virtual ~FileWriter() {};
 
     /**
-     * Write a result in a file.
+     * Writes a result in a file.
      */
     virtual void visitResult(Result* result) = 0;
 
     /**
-     * Write a mean of results in a file.
+     * Writes a mean of results in a file.
      */
     virtual void visitMean(Mean* mean) = 0;
 };

@@ -12,9 +12,11 @@
  */
 
 /**
- * @file Molecule.h
- *
- * Representation d'une molecule.
+ * \file Molecule.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief An interface describing a way of representing a molecule.
  */
 
 #ifndef MOLECULE_H
@@ -37,20 +39,23 @@ class Molecule {
      * \return the name of molecule.
      */
     virtual std::string getName() = 0;
+
     /**
      * \return the total number of atom forming molecule composition.
      */
     virtual unsigned int getAtomNumber() const = 0;
+
     /**
      * \return the mass of the molecule.
      */
     virtual double getTotalMass() const = 0;
+
     /**
      * \return a pointer on atom collection.
      */
     virtual std::vector<Atom*>* getAllAtoms() const = 0;
+
     /**
-     * \pre c != null
      * \param c a coordinate
      * \return the atom from the specified position.
      */
@@ -60,30 +65,27 @@ class Molecule {
      * Replaces the molecule at its initial position.
      */
     virtual void toInitialPosition() = 0;
+
     /**
-     * Replace the current name of molecule by a new one.
-     * \pre n != ""
+     * Replaces the current name of molecule by a new one.
      * \param n a string value.
      */
     virtual void setName(std::string n) = 0;
+
     /**
-     * Add an atom on the molecule.
-     * \pre
-     *  l <- getAllAtoms()
-     *  for i <- l[0...l.length()-1]
-     *    i.getPosition() != a->getPosition()
+     * Adds an atom on the molecule.
      * \param a a pointer on an atom.
      */
     virtual void addAtom(Atom* a) = 0;
+
     /**
-     * Delete the specified atom.
-     * \pre a != null
+     * Deletes the specified atom.
      * \param a a pointer on an atom.
      */
     virtual void deleteAtom(Atom* a) = 0;
+
     /**
-     * Delete the atom at specified position.
-     * \pre c != null
+     * Deletes the atom at specified position.
      * \param c a coordinate.
      */
     virtual void deleteAtom(const Vector3D& c) = 0;

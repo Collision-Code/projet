@@ -16,8 +16,8 @@
  * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
  * \version 1.0
  * \date 14 may 2016
- * \brief Describe a state of a calculation by a CalculationOperator instance.
- * \details Allow access to data like finished methods booleans or percentage of progression for TM method.
+ * \brief Describes a state of a calculation by a CalculationOperator instance.
+ * \details Allows access to data like finished methods booleans or percentage of progression for TM method.
  */
 
 #ifndef CALCULATIONSTATE_H

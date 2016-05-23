@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file StdMolecule.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Implements a way of representing a molecule.
+ */
+
 #ifndef STDMOLECULE_H
 #define STDMOLECULE_H
 
@@ -24,12 +32,12 @@
 class StdMolecule : public Molecule {
   public:
     /**
-     * Create an empty molecule.
+     * Creates an empty molecule.
      */
     StdMolecule();
 
     /**
-     * Release allocates resources.
+     * Releases allocates resources.
      */
     virtual ~StdMolecule();
 
@@ -37,20 +45,23 @@ class StdMolecule : public Molecule {
      * \return the name of molecule.
      */
     std::string getName();
+
     /**
      * \return the total number of atom forming molecule composition.
      */
     unsigned int getAtomNumber() const {return m_atoms->size();}
+
     /**
      * \return the mass of the molecule.
      */
     double getTotalMass() const;
+
     /**
      * \return a pointer on atom collection.
      */
     std::vector<Atom*>* getAllAtoms() const {return m_atoms;}
+
     /**
-     * \pre c != null
      * \param c a coordinate
      * \return the atom from the specified position.
      */
@@ -60,30 +71,27 @@ class StdMolecule : public Molecule {
      * Replaces the molecule at its initial position.
      */
     void toInitialPosition();
+
     /**
-     * Replace the current name of molecule by a new one.
-     * \pre n != ""
+     * Replaces the current name of molecule by a new one.
      * \param n a string value.
      */
     void setName(std::string n) {m_name = n;}
+
     /**
-     * Add an atom on the molecule.
-     * \pre
-     *  l <- getAllAtoms()
-     *  for i <- l[0...l.length()-1]
-     *    i.getPosition() != a->getPosition()
+     * Adds an atom on the molecule.
      * \param a a pointer on an atom.
      */
     void addAtom(Atom* a);
+
     /**
-     * Delete the specified atom.
-     * \pre a != null
+     * Deletes the specified atom.
      * \param a a pointer on an atom.
      */
     void deleteAtom(Atom* a);
+
     /**
-     * Delete the atom at specified position.
-     * \pre c != null
+     * Deletes the atom at specified position.
      * \param c a coordinate.
      */
     void deleteAtom(const Vector3D& c);

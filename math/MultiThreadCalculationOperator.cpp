@@ -84,7 +84,7 @@ void MultiThreadCalculationOperator::calculateTM()
 
   // im2 est juste une variable pour l'affichage, iu3 et iu2 et ip aussi
 
-  // Un objet pour manipuler les fonctions mathÃ©matiques.
+  // Un objet pour manipuler les fonctions mathematiques.
   MathLib* mathLib = new StdMathLib();
 
   // Masses.
@@ -103,7 +103,7 @@ void MultiThreadCalculationOperator::calculateTM()
   std::vector<double> om13st(m_numberCyclesTM);
   std::vector<double> om22st(m_numberCyclesTM);
 
-  // Atome le plus Ã©loignÃ© sur l'axe des x.
+  // Atome le plus eloigne sur l'axe des x.
   double rMax = 0.0;
   double r;
   // Une variable retenant l'atome augmentant le plus rMax.
@@ -118,7 +118,7 @@ void MultiThreadCalculationOperator::calculateTM()
   }
 
 
-  // Rotation de l'atome le plus Ã©loignÃ© sur l'axe des X.
+  // Rotation de l'atome le plus eloigne sur l'axe des X.
   iPos = m_molInitPos[atomHold];
   double angleX = 0.0;
   double angleY = 0.0;
@@ -144,7 +144,7 @@ void MultiThreadCalculationOperator::calculateTM()
 
 
 
-  // DÃ©terminaison de rMax, eMax et r00 sur les directions x, y et z.
+  // Determinaison de rMax, eMax et r00 sur les directions x, y et z.
   const int irn = 1000;
   double ddd = (rMax + m_maxROLJ) / irn;
 
@@ -203,7 +203,7 @@ void MultiThreadCalculationOperator::calculateTM()
   }
 
 
-  // PrÃ©paration de l'intÃ©gration sur gst.
+  // Preparation de l'integration sur gst.
   const double tst = m_XkFromMobcal * m_temperature / m_EoFromMobcal;
   double tst3 = boost::math::pow<3>(tst);
 
@@ -240,8 +240,7 @@ void MultiThreadCalculationOperator::calculateTM()
   }
 
 
-  // DÃ©termination de b2max.
-  // Ligne 1456.
+  // Determination de b2max.
   double dbst2 = 1.0;
   double dbst22 = dbst2 / 10.0;
   double cmin = 0.0005;
@@ -270,21 +269,16 @@ void MultiThreadCalculationOperator::calculateTM()
     if (ibst < 0) {
       ibst = 0;
     }
-    // do/while pour le goto 3000 ligne 1490
+
     do {
       bst2 = dbst2 * ibst;
       b = m_RoFromMobcal * sqrt(bst2);
-      // gsang 1475
-      // Pas besoin d'erat dans l'appel Ã  gsang ?
+      // Pas besoin d'erat dans l'appel a gsang ?
       // Pas besoin de d1 ?
       // istep inutile dans Mobcal ?
       ang = calculateTrajectory(m_molPos, v, b);
       cosx[ibst] = 1.0 - cos(ang);
 
-      // C'est le bordel dans les goto
-      // On a une boucle de la ligne 1473 Ã  la ligne 1490 Ã  cause du goto 3000
-      // Le seul moyen de sortir c'est le goto 3020 ligne 1480-1482
-      // On va le symboliser par un break, ici
       if (ibst >= 4 && cosx[ibst] < cmin
           && cosx[ibst - 1] < cmin
           && cosx[ibst - 2] < cmin
@@ -293,8 +287,6 @@ void MultiThreadCalculationOperator::calculateTM()
         break;
       }
 
-      // Le goto 3010 ligne 1479 sera symbolisÃ© par un if ici.
-      // Comme le goto 3000 est obligatoire, on va boucler.
       ibst += 1;
       if (ibst > NbCasesCosX) {
         // ERREUR
@@ -302,21 +294,18 @@ void MultiThreadCalculationOperator::calculateTM()
       }
     } while(true);
 
-    // Ligne 1491, on arrive ici aprÃ¨s le goto 3020 ligne 1482.
     b2max[i] = (ibst - 5) * dbst2;
-    // Boucle do/while pour le goto 3040 ligne 1495
     do {
       b2max[i] += dbst22;
       b = m_RoFromMobcal * sqrt(b2max[i]);
       ang = calculateTrajectory(m_molPos, v, b);
     } while (1.0 - cos(ang) > cmin);
   }
-  // Fin de la boucle for : continue ligne 1496
 
 
   // On calcule Omega(1, 1)*,  Omega(1, 2)*, Omega(1, 3) et Omega(2, 2)*
-  // en intÃ©grant Q(1)* ou Q(2)* sur toutes les orientations et Ã  des
-  // vÃ©locitÃ©s initiales relatives.
+  // en integrant Q(1)* ou Q(2)* sur toutes les orientations et a des
+  // velocites initiales relatives.
   for (int i = 0; i < m_numberPointsVelocity; ++i) {
     q1st[i] = 0.0;
     q2st[i] = 0.0;
@@ -351,7 +340,6 @@ void MultiThreadCalculationOperator::calculateTM()
 
     #pragma omp parallel for reduction(+:om11stSum,om12stSum,om13stSum,om22stSum)
     for (int ig = 0; ig < m_numberPointsVelocity; ++ig) {
-      // Retirer etoile : std::vector<Vector3D>
       std::vector<Vector3D> molPos(m_molPos);
       double valpgst = pgst[ig + 1];
       double gst2 = valpgst * valpgst;
@@ -412,8 +400,7 @@ void MultiThreadCalculationOperator::calculateTM()
   m_calculationState->setFinishedTrajectories(m_numberCyclesTM * m_numberPointsVelocity * m_numberPointsMCIntegrationTM);
 
 
-  // On calcul les moyennes.
-  // Ligne 1582.
+  // On calcule les moyennes.
   hold1 = 0.0;
   hold2 = 0.0;
   double temp = 0.0;
@@ -447,17 +434,16 @@ void MultiThreadCalculationOperator::calculateTM()
       hold = mom11st - om11st[ic];
       sdom11st += hold * hold;
   }
-  // Ne sert Ã  rien ? DÃ©viation standard
+  // Ne sert a rien ? Deviation standard
   sdom11st = sqrt(sdom11st / m_numberCyclesTM);
   double cs = mom11st * M_PI * m_RoFromMobcal * m_RoFromMobcal;
-  // sdevpc est enregistree pour la deivation standard
+  // sdevpc est enregistree pour la deviation standard
   double sdevpc = 100.0 * sdom11st / mom11st;
   m_result->setStandardDeviation(sdevpc);
 
 
-  // On utilise les omegas pour obtenir un ordre supÃ©rieur de facteur
-  // de correction pour les mobilitÃ©s.
-  // Ligne 1633.
+  // On utilise les omegas pour obtenir un ordre superieur de facteur
+  // de correction pour les mobilites.
   double ayst = mom22st / mom11st;
   double best = ((5.0 * mom12st) - (4.0 * mom13st)) / mom11st;
   double cest = mom12st / mom11st;
@@ -468,12 +454,12 @@ void MultiThreadCalculationOperator::calculateTM()
   double f = 1.0 / (1.0 - delta);
   double mob = (m_mobilityConstant * f) / (sqrt(m_temperature) * cs);
 
-  // Average TM mobility ;
+  // Average TM mobility
   double averageTMMobility = mob;
-  // Inverse average TM mobility :
+  // Inverse average TM mobility
   double inverseAverageTMMobility = 1.0 / mob;
 
-  // Average TM cross section.
+  // Average TM cross section
   double TMCrossSection = cs * 1.0 * pow(10, 20);
 
   delete mathLib;

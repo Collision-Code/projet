@@ -11,14 +11,19 @@
  * Thomas CAPET
  */
 
+/**
+ * \file Mean.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Interface describing a way of save mean of calculations results.
+ */
+
 #ifndef MEAN_H
 #define MEAN_H
 
 #include "Result.h"
 
-/**
- * Interface describing means of results.
- */
 class Mean
 {
   public:

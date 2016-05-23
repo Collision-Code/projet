@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file MonoThreadCalculationOperator.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Implements the operations for calculating cross-section with EHSS, PA and TM methods and one thread.
+ */
+
 #ifndef MONOTHREADCALCULATIONOPERATOR_H
 #define MONOTHREADCALCULATIONOPERATOR_H
 

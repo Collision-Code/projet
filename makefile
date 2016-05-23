@@ -13,9 +13,6 @@ endif
 CFLAGS = -w -fexceptions -D__NO_INLINE__
 
 ifeq ($(OS),Linux)
-<<<<<<< f46ca95b7fc4c9fb44767ebdd766d667d60e2480
-LIB = -Llib -Llib/qt -Ilib
-=======
 LDFLAGS_RELEASE = -Wl,-rpath,lib/qt/unix
 else
 LDFLAGS_RELEASE =
@@ -23,11 +20,10 @@ endif
 
 ifeq ($(OS),Linux)
 LIB = -Ilib -Llib -Llib/qt -Llib/qt/unix
->>>>>>> Mise à jour
-LDLIBS = -lQt5Widgets -lQt5Gui -lQt5Core -lQt5Concurrent
+LDLIBS = -lQt5Widgets -lQt5Gui -lQt5Core
 else
 LIB = -Ilib -Llib -Llib\qt -Llib\qt\windows
-LDLIBS = -lqtmain -lQt5Widgets -lQt5Gui -lQt5Core -lQt5Concurrent
+LDLIBS = -lqtmain -lQt5Widgets -lQt5Gui -lQt5Core
 endif
 
 OBJDIR = obj
@@ -75,11 +71,6 @@ INCPATH = -I. \
 			-Iinclude/unix \
 			-Iinclude/QtGui \
 			-Iinclude/QtWidgets \
-<<<<<<< f46ca95b7fc4c9fb44767ebdd766d667d60e2480
-			-Iinclude/QtConcurrent \
-=======
-			-Iinclude/unix/QtConcurrent \
->>>>>>> Mise à jour
 			-Iinclude/unix/QtCore
 
 OUT_RELEASE_IHM = ./Collision-Code-GUI
@@ -90,7 +81,6 @@ INCPATH = -I. \
 			-Iinclude/windows \
 			-Iinclude/QtGui \
 			-Iinclude/QtWidgets \
-			-Iinclude/QtConcurrent \
 			-Iinclude/windows/QtCore \
 			-Iinclude/windows/win32-g++
 

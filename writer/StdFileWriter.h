@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+ /**
+ * \file StdFileWriter.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Implements a way of write results and means of results in a stream.
+ */
+
 #ifndef STDFILEWRITER_H
 #define STDFILEWRITER_H
 
@@ -31,12 +39,12 @@ class StdFileWriter : public FileWriter {
     virtual ~StdFileWriter();
 
     /**
-     * Write a result in a stream.
+     * Writes a result in a stream.
      */
     void visitResult(Result* result);
 
     /**
-     * Write a mean of results in a file.
+     * Writes a mean of results in a file.
      */
     void visitMean(Mean* mean);
 

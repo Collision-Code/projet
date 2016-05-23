@@ -11,14 +11,16 @@
  * Thomas CAPET
  */
 
+/**
+ * \file Vector3D.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Implements a way to save a vector of three variables of type "double".
+ */
+
 #ifndef VECTOR3D_H
 #define VECTOR3D_H
-
-/**
- * @file Vector3D.h
- *
- *
- */
 
 #include <iostream>
 

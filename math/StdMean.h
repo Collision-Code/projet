@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file StdMean.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Implements a way of save mean of calculations results.
+ */
+
 #ifndef STDMEAN_H
 #define STDMEAN_H
 

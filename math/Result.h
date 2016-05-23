@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file Result.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief A interface describing how to save the results of cross-section calculations.
+ */
+
 #ifndef RESULT_H
 #define RESULT_H
 

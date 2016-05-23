@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file PdbFileReader.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Implements a way of loading geometries files from .pdb files.
+ */
+
 #ifndef PDBFILEREADER_H
 #define PDBFILEREADER_H
 
@@ -29,7 +37,7 @@ class PdbFileReader : public FileReader {
     virtual ~PdbFileReader();
 
     /**
-     * Returns name of file onload.
+     * Returns name of file on load.
      * \return a string value giving the complete file name.
      */
     std::string getFileName() const {return m_filename;}
@@ -48,8 +56,8 @@ class PdbFileReader : public FileReader {
 
   private:
     /**
-     * Convert a string in double.
-     * Throw an exception if not possible.
+     * Converts a string in double.
+     * Throws an exception if not possible.
      */
     double convertToDouble(const std::string& s);
 

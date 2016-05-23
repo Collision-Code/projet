@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file StdCalculationOperator.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Implements methods which will launch calculations on EHSS, PA and TM methods.
+ */
+
 #ifndef STDCALCULATIONOPERATOR_H
 #define STDCALCULATIONOPERATOR_H
 

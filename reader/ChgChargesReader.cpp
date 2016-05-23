@@ -18,6 +18,9 @@
 #include <cstdlib>
 #include <string>
 #include <sstream>
+#include <algorithm>
+#include <iterator>
+#include <string>
 
 #include "../lib/boost/tokenizer.hpp"
 #include "../molecule/Molecule.h"
@@ -61,8 +64,32 @@ std::vector<Molecule*>* ChgChargesReader::loadResources(std::vector<Molecule*>* 
       std::vector<double> newCharges;
 
       for (int j = 0; j < atomsNb; j++) {
-        std::getline(file, line);
-        double charge = strtod(line.c_str(), nullptr);
+          // La ligne se presente comme ca : symb chg
+        if (!std::getline(file, line)) {
+          std::ostringstream oss;
+          oss << "Not enough lines in " << m_filename << ".";
+          throw oss.str();
+        }
+        std::istringstream iss(line);
+        std::vector<std::string> tokens;
+        copy(std::istream_iterator<std::string>(iss),
+          std::istream_iterator<std::string>(),
+          std::back_inserter(tokens));
+        if (tokens.size() != 2) {
+          std::ostringstream oss;
+          oss << "Invalid line in " << m_filename << " : " << line;
+          throw oss.str();
+        }
+
+        // On controle le symbole atomique.
+        if ((*(*molGeometries)[i]->getAllAtoms())[j]->getSymbol() != tokens[0]) {
+          std::ostringstream oss;
+          oss << "Invalid symbol in " << m_filename << " : " << line;
+          throw oss.str();
+        }
+
+        // On enregistre la charge.
+        double charge = strtod(tokens[1].c_str(), nullptr);
         newCharges.push_back(charge);
       }
       if (atomsNb != newCharges.size()) {

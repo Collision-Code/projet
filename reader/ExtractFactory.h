@@ -11,6 +11,14 @@
  * Thomas CAPET
  */
 
+/**
+ * \file ExtractFactory.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Interface describing a factory permitting to return the good FileReader to read a certain type of file.
+ */
+
 #ifndef EXTRACTFACTORY_H
 #define EXTRACTFACTORY_H
 

@@ -1,6 +1,3 @@
-#ifndef CALCULATIONOPERATOR_H
-#define CALCULATIONOPERATOR_H
-
 /*
  * Collision-Code
  * Free software to calculate collision cross-section with Helium.
@@ -14,13 +11,21 @@
  * Thomas CAPET
  */
 
+/**
+ * \file CalculationOperator.h
+ * \author Anthony Breant, Clement Poinsot, Jeremie Pantin, Mohamed Takhtoukh, Thomas Capet
+ * \version 1.0
+ * \date 23 may 2016
+ * \brief Interface describing methods which will launch calculations on EHSS, PA and TM methods.
+ */
+
+#ifndef CALCULATIONOPERATOR_H
+#define CALCULATIONOPERATOR_H
+
 #include "Result.h"
 
 #include "../observer/state/CalculationState.h"
 
-/**
- * Interface describing how to run cross-section calculations.
- */
 class CalculationOperator {
   public:
     virtual ~CalculationOperator() {};

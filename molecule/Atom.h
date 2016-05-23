@@ -53,19 +53,17 @@ class Atom {
 
     /**
      * Sets a new position for the atom.
-     * @param One coordinate.
-     * @pre c != NULL
+     * \param c One coordinate.
      */
     virtual void setPosition(Vector3D *c) = 0;
     /**
      * Sets a new symbol value for atom.
-     * @param A string value.
-     * @pre n != ""
+     * \param s A string value.
      */
     virtual void setSymbol(std::string s) = 0;
     /**
      * Sets a new charge value for atom.
-     * @param One double.
+     * \param c One double.
      */
     virtual void setCharge(double c) = 0;
 };
